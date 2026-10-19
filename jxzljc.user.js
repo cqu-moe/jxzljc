@@ -138,7 +138,7 @@
       button:not(:disabled):active { background: var(--muted); }
       .primary:not(:disabled):active { background: color-mix(in oklab, var(--primary) 80%, var(--surface)); }
       #launch { position: fixed; bottom: max(var(--space-6), env(safe-area-inset-bottom)); right: var(--space-6); z-index: 2147483646; box-shadow: var(--shadow-popover); }
-      dialog { width: min(56rem, calc(100vw - var(--space-8))); max-width: none; max-height: calc(100dvh - var(--space-8)); margin: auto; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); color: var(--foreground); background: var(--background); box-shadow: var(--shadow-popover); overflow: hidden; }
+      dialog { width: min(56rem, calc(100vw - var(--space-8))); height: min(48rem, calc(100dvh - var(--space-8))); max-width: none; max-height: calc(100dvh - var(--space-8)); margin: auto; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); color: var(--foreground); background: var(--background); box-shadow: var(--shadow-popover); overflow: hidden; }
       dialog[open] { display: flex; flex-direction: column; }
       dialog::backdrop { background: var(--overlay); }
       header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4); padding: var(--space-6); background: var(--surface); border-bottom: 1px solid var(--border); }
@@ -150,7 +150,7 @@
       h3 { font-size: var(--text-base); font-weight: 600; }
       .eyebrow { font-size: var(--text-xs); color: var(--muted-foreground); margin-bottom: var(--space-2); }
       .description { color: var(--muted-foreground); font-size: var(--text-sm); margin-top: var(--space-2); }
-      .content { padding: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+      .content { flex: 1; padding: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: var(--space-6); min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
       .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
       .card { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-card); padding: var(--space-5); }
       fieldset { margin: 0; border: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-5); min-width: 0; }
@@ -189,17 +189,36 @@
       .result { font-size: var(--text-xs); color: var(--muted-foreground); background: var(--muted); border-radius: var(--radius-sm); padding: var(--space-1) var(--space-2); }
       .result[data-state="success"] { color: var(--success); }
       .result[data-state="error"] { color: var(--destructive); }
+      .progress-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-6) 0 var(--space-3); }
+      #percent { font-size: var(--text-display); line-height: 1; font-weight: 600; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+      .progress-track { height: var(--space-3); background: var(--muted); border-radius: var(--radius); overflow: hidden; }
+      .progress-fill { height: 100%; background: var(--primary); transform: scaleX(0); transform-origin: left; overflow: hidden; }
+      .progress-fill::after { content: ''; display: block; height: 100%; background: linear-gradient(90deg, transparent, var(--primary-foreground), transparent); opacity: 0; }
+      .progress-current { display: flex; align-items: baseline; gap: var(--space-2); margin-top: var(--space-5); }
+      .activity-dot { width: var(--space-2); height: var(--space-2); flex: none; border-radius: var(--radius); background: var(--primary); }
+      #current-course { min-width: 0; overflow-wrap: anywhere; font-size: var(--text-sm); }
+      #progress-step[data-state="complete"] :is(#percent, #progress-title) { color: var(--success); }
+      #progress-step[data-state="error"] #progress-title { color: var(--destructive); }
+      @media (prefers-reduced-motion: no-preference) {
+        :host([data-motion="on"]) .progress-fill { transition: transform 280ms var(--ease-out); }
+        :host([data-motion="on"]) #progress-step[data-state="running"] .progress-fill::after { animation: sweep 1.4s linear infinite; }
+        :host([data-motion="on"]) #progress-step[data-state="running"] .activity-dot { animation: pulse 1.2s ease-in-out infinite; }
+        :host([data-motion="on"]) button { transition: transform var(--duration-feedback) var(--ease-out); }
+        :host([data-motion="on"]) button:not(:disabled):active { transform: scale(0.97); }
+      }
+      @keyframes sweep { from { transform: translateX(-100%); opacity: 0.1; } 50% { opacity: 0.35; } to { transform: translateX(100%); opacity: 0.1; } }
+      @keyframes pulse { 50% { opacity: 0.35; } }
       footer { display: grid; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border); background: var(--surface); }
       .feedback { display: grid; gap: var(--space-3); max-height: min(10rem, 25dvh); overflow-y: auto; }
       #status, #error { font-size: var(--text-sm); white-space: pre-wrap; overflow-wrap: anywhere; }
       #error { color: var(--destructive); border-left: 2px solid var(--destructive); padding-left: var(--space-3); }
       #error:empty { display: none; }
       .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
-      .actions:has(#stop:not([hidden])) > :is(#preview, #confirm, #refresh) { display: none; }
+      #back { margin-right: auto; }
       .notice { font-size: var(--text-xs); color: var(--muted-foreground); }
       [hidden] { display: none !important; }
       @media (max-width: 540px) {
-        dialog { width: calc(100vw - var(--space-4)); max-height: calc(100dvh - var(--space-4)); }
+        dialog { width: calc(100vw - var(--space-4)); height: min(48rem, calc(100dvh - var(--space-4))); max-height: calc(100dvh - var(--space-4)); }
         header, .content { padding: var(--space-4); }
         header { gap: var(--space-2); }
         h2 { font-size: var(--text-xl); }
@@ -208,7 +227,6 @@
         .teacher { max-width: none; }
         .card { padding: var(--space-4); }
         footer { padding: var(--space-3) var(--space-4) max(var(--space-3), env(safe-area-inset-bottom)); }
-        .actions { display: grid; grid-template-columns: 1fr; }
         #launch { right: var(--space-4); bottom: max(var(--space-4), env(safe-area-inset-bottom)); }
       }
       @media (max-height: 540px) { .eyebrow, header .description, .notice { display: none; } header, footer { padding: var(--space-2) var(--space-4); } .actions { display: flex; } }
@@ -216,24 +234,31 @@
     <button id="launch" class="primary">快速评教</button>
     <dialog aria-labelledby="title" aria-describedby="dialog-description">
       <header>
-        <div><p class="eyebrow">重庆大学 · 学生评教</p><h2 id="title">快速评教</h2><p class="description" id="dialog-description">统一设置，逐项核对，再确认提交。</p></div>
+        <div><p class="eyebrow">重庆大学 · 学生评教</p><h2 id="title">快速评教</h2><p class="description" id="dialog-description">01 填写设置 · 02 核对预览 · 03 提交评价</p></div>
         <button id="close" aria-label="关闭快速评教">关闭</button>
       </header>
       <div class="content">
-        <section aria-labelledby="settings-title">
-          <div class="section-heading"><h3 id="settings-title">统一评价设置</h3><span class="count">仅补空白</span></div>
+        <section id="settings-step" aria-labelledby="settings-title">
+          <div class="section-heading"><h3 id="settings-title" tabindex="-1">统一评价设置</h3><span class="count">第 1 步</span></div>
           <form id="settings">
             <fieldset class="card" aria-labelledby="settings-title">
               <label>满意度档位<select id="grade" required><option value="">请选择满意度</option></select></label>
               <div class="field"><label for="overall">综合评分</label><input id="overall" type="number" step="1" required aria-describedby="score-help"><p class="muted" id="score-help">按网站允许的范围填写</p></div>
               <label class="wide">统一评语<textarea id="comment" rows="3" placeholder="填写你的意见与建议，可留空"></textarea></label>
-              <p class="muted wide">已有评分和评语会保留。展开课程可单独调整；重新预览会重置勾选与逐课修改。</p>
+              <p class="muted wide">已有评分和评语会保留。下一步可选择课程、逐门调整；修改统一设置会重置逐课修改。</p>
             </fieldset>
           </form>
         </section>
-        <section aria-labelledby="list-title">
-          <div class="section-heading"><h3 id="list-title">待评清单</h3><span class="count" id="count">尚未生成</span></div>
-          <div id="empty"><strong>先填写统一评价设置</strong><p class="muted">预览后即可核对当前学期的待评条目。</p></div>
+        <section id="progress-step" class="card" aria-labelledby="progress-title" hidden>
+          <h3 id="progress-title" tabindex="-1">正在提交评价</h3>
+          <div class="progress-heading"><strong id="percent" aria-hidden="true">0%</strong><span id="progress-count" class="count"></span></div>
+          <div id="progress-bar" class="progress-track" role="progressbar" aria-label="已核实评价进度" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0"><div id="progress-fill" class="progress-fill"></div></div>
+          <div class="progress-current"><span class="activity-dot" aria-hidden="true"></span><p id="current-course">尚未开始提交课程</p></div>
+          <p id="progress-phase" class="description">服务器核实成功后计入进度。</p>
+        </section>
+        <section id="preview-step" aria-labelledby="list-title" hidden>
+          <div class="section-heading"><h3 id="list-title" tabindex="-1">待评清单</h3><span class="count" id="count"></span></div>
+          <div id="empty" hidden><strong>当前学期没有待评条目</strong><p class="muted">已提交和非待评状态的条目不会列入清单。</p></div>
           <form id="evaluation" novalidate>
             <label id="selection" class="checkbox" hidden><input id="select-all" type="checkbox">全选待评课程</label>
             <ol id="list" aria-label="待评清单"></ol>
@@ -242,14 +267,15 @@
       </div>
       <footer>
         <div class="feedback">
-          <p id="status" role="status" aria-live="polite">尚未生成预览，不会提交评价。</p>
+          <p id="status" role="status" aria-live="polite">填写后进入下一步，核对课程与评价内容。</p>
           <p id="error" role="alert"></p>
         </div>
         <div class="actions">
-          <button class="primary" id="preview" type="submit" form="settings">预览待评清单</button>
-          <button id="confirm" type="submit" form="evaluation" disabled>确认并开始提交</button>
+          <button class="primary" id="next" type="submit" form="settings">下一步</button>
+          <button id="back" hidden>上一步</button>
+          <button class="primary" id="confirm" type="submit" form="evaluation" hidden disabled>开始刷课</button>
           <button id="stop" class="primary" hidden>停止后续提交</button>
-          <button id="refresh" hidden>刷新课程列表</button>
+          <button id="refresh" class="primary" hidden>刷新课程列表</button>
         </div>
         <p class="notice">仅处理当前学期未提交的条目。一次只在一个标签页运行。</p>
       </footer>
@@ -262,18 +288,59 @@
   let plan = null;
   let busy = false;
   let stopping = false;
+  let step = 'settings';
+  let stepAnimation;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  host.dataset.motion = 'off';
+  root.addEventListener('pointerdown', () => { host.dataset.motion = reducedMotion.matches ? 'off' : 'on'; });
+  root.addEventListener('keydown', () => { host.dataset.motion = 'off'; stepAnimation?.cancel(); });
+  reducedMotion.addEventListener('change', () => { if (reducedMotion.matches) stepAnimation?.cancel(); });
+
+  function showStep(next) {
+    const backwards = next === 'settings';
+    step = next;
+    $('settings-step').hidden = step !== 'settings';
+    $('preview-step').hidden = step === 'settings';
+    $('progress-step').hidden = step !== 'progress';
+    $('list-title').textContent = step === 'progress' ? '提交记录' : '待评清单';
+    $('selection').hidden = step !== 'preview' || !plan?.items.length;
+    lock(busy);
+    const content = root.querySelector('.content');
+    content.scrollTop = 0;
+    stepAnimation?.cancel();
+    if (host.dataset.motion === 'on' && !reducedMotion.matches) {
+      stepAnimation = content.animate([
+        { opacity: 0, transform: `translateX(${backwards ? -12 : 12}px)` },
+        { opacity: 1, transform: 'translateX(0)' },
+      ], { duration: 180, easing: 'cubic-bezier(0.19, 1, 0.22, 1)' });
+    }
+    $(step === 'settings' ? 'settings-title' : step === 'preview' ? 'list-title' : 'progress-title').focus({ preventScroll: true });
+  }
+
+  function updateProgress(completed, total) {
+    $('percent').textContent = `${Math.round(completed / total * 100)}%`;
+    $('progress-count').textContent = `${completed} / ${total} 门已核实`;
+    $('progress-bar').setAttribute('aria-valuemax', String(total));
+    $('progress-bar').setAttribute('aria-valuenow', String(completed));
+    $('progress-bar').setAttribute('aria-valuetext', `${completed} / ${total} 门已核实提交成功`);
+    $('progress-fill').style.transform = `scaleX(${completed / total})`;
+  }
 
   function lock(value) {
     busy = value;
     fieldset.disabled = value;
-    $('preview').disabled = value;
+    $('next').disabled = value;
+    $('next').hidden = step !== 'settings';
+    $('next').textContent = value ? '正在读取…' : '下一步';
+    $('back').disabled = value;
+    $('back').hidden = step !== 'preview';
     $('close').disabled = value;
     $('refresh').disabled = value;
+    $('refresh').hidden = step !== 'progress' || value;
+    $('stop').hidden = step !== 'progress' || !value;
     const selected = plan?.items.some(item => item.selected);
     $('confirm').disabled = value || !selected;
-    $('preview').classList.toggle('primary', !selected && $('refresh').hidden);
-    $('refresh').classList.toggle('primary', !selected);
-    $('confirm').classList.toggle('primary', Boolean(selected));
+    $('confirm').hidden = step !== 'preview';
     for (const control of $('evaluation').querySelectorAll('fieldset, input[type="checkbox"]')) control.disabled = value || !plan;
     $('settings').setAttribute('aria-busy', String(value));
   }
@@ -374,8 +441,8 @@
     $('count').textContent = `已选 ${count} / ${plan.items.length}`;
     $('select-all').checked = count > 0 && count === plan.items.length;
     $('select-all').indeterminate = count > 0 && count < plan.items.length;
-    $('status').textContent = count ? `${plan.semester}：将提交 ${count} 个条目，请展开核对后确认。` : '尚未选择课程，请勾选要评价的条目。';
-    lock(false);
+    $('status').textContent = count ? `${plan.semester}：点击「开始刷课」将提交已选 ${count} 门课程的评价。` : (plan.items.length ? '尚未选择课程，请勾选要评价的条目。' : `${plan.semester}：0 个待评条目，无需提交。`);
+    lock(busy);
   }
 
   function showPlan(items, range) {
@@ -507,31 +574,31 @@
   });
   $('close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
+  $('back').addEventListener('click', () => {
+    if (busy || step !== 'preview') return;
+    showStep('settings');
+    $('error').textContent = '';
+    $('status').textContent = '课程选择与逐课编辑已保留；修改统一设置后会重新生成。';
+  });
   $('settings').addEventListener('input', () => {
     plan = null;
-    $('confirm').disabled = true;
     $('list').replaceChildren();
     $('selection').hidden = true;
-    $('preview').classList.toggle('primary', $('refresh').hidden);
-    $('confirm').classList.remove('primary');
     $('error').textContent = '';
-    $('count').textContent = '需要重新预览';
-    $('empty').hidden = false;
-    $('empty').innerHTML = '<strong>设置已改变</strong><p class="muted">重新预览后，即可核对新的提交内容。</p>';
-    $('status').textContent = '设置已改变，请重新预览。';
+    $('status').textContent = '填写后进入下一步，核对课程与评价内容。';
+    lock(busy);
   });
   $('settings').addEventListener('submit', async event => {
     event.preventDefault();
-    if (busy) return;
-    plan = null;
+    if (busy || step !== 'settings') return;
+    if (plan) {
+      showStep('preview');
+      updateSelection();
+      return;
+    }
     lock(true);
     $('error').textContent = '';
     $('status').textContent = '正在读取当前学期、待评条目和草稿…';
-    $('count').textContent = '正在读取';
-    $('empty').hidden = false;
-    $('empty').innerHTML = '<strong>正在读取待评条目…</strong><p class="muted">正在核对当前学期、指标和已有草稿。</p>';
-    $('list').replaceChildren();
-    $('selection').hidden = true;
     try {
       const modal = document.getElementById('evaluationModal');
       if (modal && getComputedStyle(modal).display !== 'none') fail('请先关闭网站的单门评教窗口，保存当前草稿后再预览。');
@@ -551,13 +618,10 @@
       plan = { semester, items, draftRaw, reviewedAt: Date.now() };
       showPlan(items, range);
       updateSelection();
-      $('list-title').scrollIntoView({ block: 'start', behavior: 'instant' });
-      if (!items.length) $('status').textContent = `${semester}：0 个待评条目，无需提交。`;
+      showStep('preview');
     } catch (error) {
       $('status').textContent = '未生成提交计划。';
-      $('count').textContent = '未生成';
-      $('empty').innerHTML = '<strong>暂时无法生成预览</strong><p class="muted">按下方提示处理后，重新预览。已填写的设置会保留。</p>';
-      $('error').textContent = error.message;
+      $('error').textContent = `${error.message}\n处理后点击「下一步」重试，已填写的设置会保留。`;
     } finally { lock(false); }
   });
 
@@ -565,11 +629,13 @@
   $('stop').addEventListener('click', () => {
     stopping = true;
     $('stop').disabled = true;
+    $('progress-title').textContent = '正在停止';
+    $('progress-step').dataset.state = 'stopped';
     $('status').textContent = '正在停止；如已发出提交请求，将先核实当前条目的结果。';
   });
   $('evaluation').addEventListener('submit', async event => {
     event.preventDefault();
-    if (busy || !plan) return;
+    if (busy || step !== 'preview' || !plan) return;
     const selected = plan.items.filter(item => item.selected);
     if (!selected.length) return;
     const invalid = selected.find(item => !item.validate());
@@ -580,7 +646,10 @@
     stopping = false;
     $('stop').disabled = false;
     $('error').textContent = '';
-    $('stop').hidden = false;
+    $('status').textContent = '正在核对当前学期与课程状态…';
+    $('progress-step').dataset.state = 'running';
+    updateProgress(0, batch.items.length);
+    showStep('progress');
     $('stop').focus({ preventScroll: true });
     let completed = 0;
     let active = null;
@@ -597,18 +666,28 @@
         if (!latest || !pending(latest) || latest.kcxz !== item.course.kcxz || latest.teacher !== item.course.teacher || latest.name !== item.course.name) fail('条目状态已变化，请重新预览。');
         if (localStorage.getItem('evaluationState') !== batch.draftRaw) fail('草稿已变化，请重新预览。');
         item.result.textContent = '正在提交…';
+        $('current-course').textContent = `${item.course.name} · ${item.course.teacher}`;
+        $('progress-phase').textContent = '正在提交评价，核实成功后计入进度。';
         $('status').textContent = `正在提交：${item.course.name} · ${item.course.teacher}（已完成 ${completed} / ${batch.items.length}）`;
         sent = true;
         await api('/saveEvaluation', { ...item.payload, pjsj: Math.max(0, Math.round((Date.now() - batch.reviewedAt) / 1000)) });
         item.result.textContent = '正在核实提交结果…';
+        $('progress-phase').textContent = '正在向服务器核实提交结果…';
         const saved = (await courses(batch.semester)).find(c => c.id === item.course.id);
         if (!saved?.completed || saved.status === '未评教' || !saved.status) fail('服务器尚未显示已提交，结果未确认。');
         item.result.textContent = `已核实提交成功 · ${saved.status}`;
         item.result.dataset.state = 'success';
         completed++;
+        updateProgress(completed, batch.items.length);
       }
+      $('progress-step').dataset.state = stopping ? 'stopped' : 'complete';
+      $('progress-title').textContent = stopping ? '已停止' : '全部评价已完成';
+      $('progress-phase').textContent = stopping ? '已停止后续提交。刷新后重新核对剩余课程。' : '所有已选课程均已核实提交成功。';
       $('status').textContent = `${stopping ? '已停止' : '完成'}：${completed} / ${batch.items.length} 个条目已核实提交成功。`;
     } catch (error) {
+      $('progress-step').dataset.state = 'error';
+      $('progress-title').textContent = '提交已停止';
+      $('progress-phase').textContent = '进度仅包含已核实成功的课程，请先刷新核实。';
       if (active) {
         active.result.textContent = sent ? '结果未确认，请先刷新核实' : '未提交';
         active.result.dataset.state = 'error';
@@ -616,8 +695,6 @@
       $('status').textContent = `已停止：${completed} / ${batch.items.length} 个条目已核实提交成功。`;
       $('error').textContent = `${active ? `${active.course.name} · ${active.course.teacher}：` : ''}${error.message}${sent ? '\n请求可能已到达服务器；请先刷新核实，再决定是否重新预览。' : ''}`;
     } finally {
-      $('stop').hidden = true;
-      $('refresh').hidden = false;
       lock(false);
       $('refresh').focus({ preventScroll: true });
     }
