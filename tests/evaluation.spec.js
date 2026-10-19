@@ -63,12 +63,88 @@ test('预览按评教条目区分教师，保留已有草稿，并且确认前�
   await expect(list.getByRole('listitem')).toHaveCount(2);
   await expect(list).toContainText('教师甲');
   await expect(list).toContainText('教师乙');
-  await expect(list).toContainText('教学设计：一般满意，9 / 15（保留草稿）');
-  await expect(list).toContainText('综合评分：82（保留草稿）');
-  await expect(list).toContainText('我原先填写的意见');
+  const first = list.getByRole('listitem').first();
+  await expect(first.getByRole('combobox')).toHaveCount(0);
+  await expect(first.getByRole('checkbox')).toBeChecked();
+  await first.locator('summary').click();
+  await expect(first.getByLabel('教学设计')).toHaveValue('C');
+  await expect(first.getByLabel('综合评分')).toHaveValue('82');
+  await expect(first.getByLabel('评语')).toHaveValue('我原先填写的意见');
+  await expect(first.getByText('保留草稿', { exact: true })).toHaveCount(3);
   await expect(page.getByRole('button', { name: '确认并开始提交' })).toBeEnabled();
   expect(submissions).toEqual([]);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('evaluationState')))).toEqual(draft);
+});
+
+test('勾选与逐课修改共同决定提交内容，展开收起和取消勾选不丢编辑', async ({ page }) => {
+  const draft = {
+    ratings: { [`${semester}-second-design`]: 'C', [`${semester}-second-design_score`]: 9 },
+    overallRatings: { [`semester-${semester}-course-second`]: '82' },
+    comments: { [`semester-${semester}-course-second`]: '原有草稿' },
+  };
+  const { submissions } = await site(page, { draft });
+  await preview(page);
+  const rows = page.getByRole('listitem');
+  const second = rows.nth(1);
+  const all = page.getByRole('checkbox', { name: '全选待评课程' });
+  const confirm = page.getByRole('button', { name: '确认并开始提交' });
+  await all.uncheck();
+  await expect(rows.getByRole('checkbox').nth(0)).not.toBeChecked();
+  await expect(rows.getByRole('checkbox').nth(1)).not.toBeChecked();
+  await expect(confirm).toBeDisabled();
+  await all.check();
+  await expect(rows.getByRole('checkbox').nth(0)).toBeChecked();
+  await expect(rows.getByRole('checkbox').nth(1)).toBeChecked();
+  await rows.first().getByRole('checkbox').uncheck();
+  await expect(all).toBeChecked({ indeterminate: true });
+  await expect(page.getByRole('status')).toContainText('将提交 1 个条目');
+  await second.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await second.getByLabel('教学设计').selectOption('D');
+  await second.getByLabel('综合评分').fill('8.3e1');
+  await second.getByLabel('评语').fill('为教师乙单独填写的意见');
+  await second.locator('summary').click();
+  await second.getByRole('checkbox').uncheck();
+  await expect(confirm).toBeDisabled();
+  await second.getByRole('checkbox').focus();
+  await page.keyboard.press('Space');
+  await second.locator('summary').click();
+  await expect(second.getByLabel('教学设计')).toHaveValue('D');
+  await expect(second.getByLabel('综合评分')).toHaveValue('8.3e1');
+  await expect(second.getByLabel('评语')).toHaveValue('为教师乙单独填写的意见');
+  expect(submissions).toEqual([]);
+  await confirm.click();
+  await expect(page.getByRole('status')).toHaveText('完成：1 / 1 个条目已核实提交成功。');
+  expect(submissions.map(({ pjsj, ...payload }) => payload)).toEqual([
+    { xsxkxxid: 'second', overallRating: '83', comment: '为教师乙单独填写的意见', ratings: [{ zbid: 'design', score: 6 }, { zbid: 'method', score: 20 }] },
+  ]);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('evaluationState')))).toEqual(draft);
+  await expect(second.getByLabel('综合评分')).toBeDisabled();
+});
+
+test('校验所有已选课程后才提交，收起的错误会展开定位，未选课程不阻塞', async ({ page }) => {
+  const { submissions } = await site(page);
+  await preview(page);
+  const second = page.getByRole('listitem').nth(1);
+  const confirm = page.getByRole('button', { name: '确认并开始提交' });
+  await second.locator('summary').click();
+  const score = second.getByLabel('综合评分');
+  for (const value of ['', '1', '96', '82.5']) {
+    await score.fill(value);
+    await second.locator('summary').click();
+    await confirm.click();
+    await expect(score).toBeFocused();
+    await expect(score).toHaveAttribute('aria-invalid', 'true');
+    await expect(second.getByText(/请输入 2–95/)).toBeVisible();
+    expect(submissions).toEqual([]);
+  }
+  await score.fill('84');
+  await expect(score).toHaveAttribute('aria-invalid', 'false');
+  await score.fill('');
+  await second.getByRole('checkbox').uncheck();
+  await confirm.click();
+  await expect(page.getByRole('status')).toHaveText('完成：1 / 1 个条目已核实提交成功。');
+  expect(submissions.map(payload => payload.xsxkxxid)).toEqual(['first']);
 });
 
 test('确认后逐条提交预览内容，核实成功并保留其他草稿，刷新不自动重发', async ({ page }) => {
@@ -107,6 +183,10 @@ test('停止后等待当前请求核实，不启动下一条', async ({ page }, 
   await preview(page);
   await page.getByRole('button', { name: '确认并开始提交' }).click();
   await expect.poll(() => submissions.length).toBe(1);
+  await expect(page.getByRole('checkbox', { name: '全选待评课程' })).toBeDisabled();
+  await expect(page.getByRole('listitem').first().getByRole('checkbox')).toBeDisabled();
+  await page.getByRole('listitem').first().locator('summary').click();
+  await expect(page.getByRole('listitem').first().getByLabel('综合评分')).toBeDisabled();
   await expect(page.getByRole('button', { name: '停止后续提交' })).toBeInViewport();
   await page.screenshot({ path: testInfo.outputPath('submitting.png') });
   await page.getByRole('button', { name: '停止后续提交' }).click();
@@ -151,7 +231,8 @@ test('确认前草稿变化会停止，重新预览才采用新内容', async ({
   await expect(page.getByRole('alert')).toContainText('草稿已变化');
   expect(submissions).toEqual([]);
   await page.getByRole('button', { name: '预览待评清单' }).click();
-  await expect(page.getByRole('list')).toContainText('刚补充的意见');
+  await page.getByRole('listitem').first().locator('summary').click();
+  await expect(page.getByRole('listitem').first().getByLabel('评语')).toHaveValue('刚补充的意见');
 });
 
 test('预览后条目已被提交时停止，避免重新提交旧计划', async ({ page }) => {
@@ -209,11 +290,11 @@ for (const colorScheme of ['light', 'dark']) {
       const dialog = page.getByRole('dialog');
       const layout = await dialog.evaluate(node => {
         const box = node.getBoundingClientRect();
-        const controls = [...node.querySelectorAll('button:not([hidden]), input, select, textarea')];
+        const controls = [...node.querySelectorAll('button, input, select, textarea, summary')].filter(el => el.checkVisibility());
         return {
           x: box.x, right: box.right, bottom: box.bottom, viewport: innerWidth,
-          overflow: [...node.querySelectorAll('*')].some(el => el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).display !== 'inline' && el.clientWidth > 0),
-          controls: controls.map(el => ({ height: el.getBoundingClientRect().height, width: el.getBoundingClientRect().width })),
+          overflow: [...node.querySelectorAll('*')].filter(el => el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).display !== 'inline' && getComputedStyle(el).textOverflow !== 'ellipsis' && el.clientWidth > 0).map(el => ({ tag: el.tagName, className: el.className, visible: el.checkVisibility(), width: el.clientWidth, scrollWidth: el.scrollWidth })),
+          controls: controls.map(el => { const rect = (el.type === 'checkbox' ? el.closest('label') : el).getBoundingClientRect(); return { height: rect.height, width: rect.width }; }),
           inputFonts: [...node.querySelectorAll('input, select, textarea')].map(el => parseFloat(getComputedStyle(el).fontSize)),
           color: getComputedStyle(node).backgroundColor,
         };
@@ -221,16 +302,22 @@ for (const colorScheme of ['light', 'dark']) {
       expect(layout.x).toBeGreaterThanOrEqual(0);
       expect(layout.right).toBeLessThanOrEqual(width);
       expect(layout.bottom).toBeLessThanOrEqual(900);
-      expect(layout.overflow).toBe(false);
+      expect(layout.overflow).toEqual([]);
       expect(layout.controls.every(c => c.height >= 44 && c.width >= 44)).toBe(true);
       expect(layout.inputFonts.every(size => size >= 16)).toBe(true);
       expect(layout.color).toBe(colorScheme === 'dark' ? 'oklch(0.235 0 0)' : 'oklch(0.985 0 0)');
       await expect(page.getByRole('button', { name: '确认并开始提交' })).toBeInViewport();
       await expect(page.getByRole('heading', { name: '待评清单', exact: true })).toBeInViewport();
       await page.screenshot({ path: testInfo.outputPath('preview-start.png') });
-      await page.getByRole('listitem').last().scrollIntoViewIfNeeded();
+      const last = page.getByRole('listitem').last();
+      expect((await last.boundingBox()).height).toBeLessThanOrEqual(72);
+      await last.locator('summary').click();
+      const title = last.getByText('长课程名称与连续标识' + 'CourseIdentifier'.repeat(6), { exact: true });
+      await expect(title).toHaveCSS('white-space', 'normal');
+      await last.getByLabel('综合评分').scrollIntoViewIfNeeded();
       await expect(page.getByRole('button', { name: '确认并开始提交' })).toBeInViewport();
       await page.screenshot({ path: testInfo.outputPath('preview.png') });
+      expect(await dialog.evaluate(node => [...node.querySelectorAll('*')].some(el => el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).display !== 'inline' && el.clientWidth > 0))).toBe(false);
     });
   }
 }

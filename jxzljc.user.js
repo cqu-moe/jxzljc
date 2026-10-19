@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         重庆大学快速评教
 // @namespace    https://github.com/cqu-moe/jxzljc
-// @version      0.2.0
+// @version      0.3.0
 // @description  预览确认后批量评价当前学期待评条目，保留已有草稿。
 // @match        *://jxzljc.cqu.edu.cn/xspj/xspj/index/xspjindex*
 // @run-at       document-idle
@@ -132,7 +132,7 @@
       button, input, select, textarea { font: inherit; }
       button { min-height: 44px; padding: var(--space-2) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--foreground); font-size: var(--text-sm); font-weight: 500; cursor: pointer; touch-action: manipulation; }
       button:disabled { color: var(--muted-foreground); background: var(--muted); cursor: not-allowed; }
-      :is(button, input, select, textarea):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+      :is(button, input, select, textarea, summary):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
       .primary:not(:disabled) { color: var(--primary-foreground); background: var(--primary); border-color: var(--primary); }
       @media (hover: hover) { button:not(:disabled):hover { background: var(--accent); } .primary:not(:disabled):hover { background: color-mix(in oklab, var(--primary) 85%, var(--surface)); } }
       button:not(:disabled):active { background: var(--muted); }
@@ -150,7 +150,7 @@
       h3 { font-size: var(--text-base); font-weight: 600; }
       .eyebrow { font-size: var(--text-xs); color: var(--muted-foreground); margin-bottom: var(--space-2); }
       .description { color: var(--muted-foreground); font-size: var(--text-sm); margin-top: var(--space-2); }
-      .content { padding: var(--space-6); display: grid; gap: var(--space-6); min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+      .content { padding: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
       .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
       .card { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-card); padding: var(--space-5); }
       fieldset { margin: 0; border: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-5); min-width: 0; }
@@ -164,15 +164,28 @@
       .count { color: var(--muted-foreground); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
       #empty { padding: var(--space-8) var(--space-4); text-align: center; border: 1px dashed var(--border); border-radius: var(--radius-lg); }
       #empty strong { display: block; font-size: var(--text-sm); font-weight: 500; margin-bottom: var(--space-2); }
-      ol { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-4); }
-      li { overflow-wrap: anywhere; min-width: 0; }
-      .course-heading { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2); padding-bottom: var(--space-4); }
-      .course-heading h3 { flex: 1; min-width: 0; }
-      .rating { padding: var(--space-3) 0; border-top: 1px solid var(--border); font-size: var(--text-sm); }
-      .rating-line { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-1) var(--space-4); }
-      .rating-line strong { font-weight: 500; font-variant-numeric: tabular-nums; }
-      .rating .muted { margin-top: var(--space-1); }
-      .comment { white-space: pre-wrap; font-size: var(--text-sm); padding-top: var(--space-3); border-top: 1px solid var(--border); }
+      #selection { margin-bottom: var(--space-2); }
+      .checkbox { display: flex; align-items: center; min-height: 44px; gap: var(--space-2); cursor: pointer; }
+      input[type="checkbox"] { appearance: auto; width: 20px; height: 20px; min-height: 0; padding: 0; margin: 0; accent-color: var(--primary); cursor: inherit; }
+      .course-select { position: absolute; top: var(--space-2); left: var(--space-2); width: 44px; justify-content: center; z-index: 1; }
+      .checkbox:has(input:disabled) { cursor: not-allowed; }
+      ol { list-style: none; padding: 0; margin: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
+      ol:empty { display: none; }
+      li { position: relative; overflow-wrap: anywhere; min-width: 0; }
+      li + li { border-top: 1px solid var(--border); }
+      summary { display: flex; align-items: center; gap: var(--space-3); min-height: 60px; padding: var(--space-3) var(--space-4) var(--space-3) calc(44px + var(--space-4)); cursor: pointer; border-radius: var(--radius); list-style: none; touch-action: manipulation; }
+      summary::-webkit-details-marker { display: none; }
+      summary::after { content: ''; width: 8px; height: 8px; flex: none; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); }
+      details[open] > summary::after { transform: rotate(45deg); }
+      @media (hover: hover) { summary:hover { background: var(--muted); } }
+      .course-name { display: flex; align-items: baseline; gap: var(--space-2); flex: 1; min-width: 0; font-size: var(--text-sm); font-weight: 500; }
+      .course-title { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .teacher { flex-shrink: 0; max-width: 40%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--muted-foreground); font-size: var(--text-xs); font-weight: 400; }
+      details[open] .course-name { display: block; }
+      details[open] :is(.course-title, .teacher) { display: block; max-width: none; white-space: normal; overflow: visible; }
+      .editor { padding: var(--space-4); border-top: 1px solid var(--border); }
+      .field-error { color: var(--destructive); font-size: var(--text-sm); font-weight: 400; }
+      [aria-invalid="true"] { border-color: var(--destructive); }
       .result { font-size: var(--text-xs); color: var(--muted-foreground); background: var(--muted); border-radius: var(--radius-sm); padding: var(--space-1) var(--space-2); }
       .result[data-state="success"] { color: var(--success); }
       .result[data-state="error"] { color: var(--destructive); }
@@ -191,6 +204,8 @@
         header { gap: var(--space-2); }
         h2 { font-size: var(--text-xl); }
         fieldset { grid-template-columns: 1fr; }
+        .course-name { display: grid; gap: 0; }
+        .teacher { max-width: none; }
         .card { padding: var(--space-4); }
         footer { padding: var(--space-3) var(--space-4) max(var(--space-3), env(safe-area-inset-bottom)); }
         .actions { display: grid; grid-template-columns: 1fr; }
@@ -212,14 +227,17 @@
               <label>满意度档位<select id="grade" required><option value="">请选择满意度</option></select></label>
               <div class="field"><label for="overall">综合评分</label><input id="overall" type="number" step="1" required aria-describedby="score-help"><p class="muted" id="score-help">按网站允许的范围填写</p></div>
               <label class="wide">统一评语<textarea id="comment" rows="3" placeholder="填写你的意见与建议，可留空"></textarea></label>
-              <p class="muted wide">已有评分和评语会保留，最终内容将在下方逐项列出。</p>
+              <p class="muted wide">已有评分和评语会保留。展开课程可单独调整；重新预览会重置勾选与逐课修改。</p>
             </fieldset>
           </form>
         </section>
         <section aria-labelledby="list-title">
           <div class="section-heading"><h3 id="list-title">待评清单</h3><span class="count" id="count">尚未生成</span></div>
           <div id="empty"><strong>先填写统一评价设置</strong><p class="muted">预览后即可核对当前学期的待评条目。</p></div>
-          <ol id="list" aria-label="待评清单"></ol>
+          <form id="evaluation" novalidate>
+            <label id="selection" class="checkbox" hidden><input id="select-all" type="checkbox">全选待评课程</label>
+            <ol id="list" aria-label="待评清单"></ol>
+          </form>
         </section>
       </div>
       <footer>
@@ -229,7 +247,7 @@
         </div>
         <div class="actions">
           <button class="primary" id="preview" type="submit" form="settings">预览待评清单</button>
-          <button id="confirm" disabled>确认并开始提交</button>
+          <button id="confirm" type="submit" form="evaluation" disabled>确认并开始提交</button>
           <button id="stop" class="primary" hidden>停止后续提交</button>
           <button id="refresh" hidden>刷新课程列表</button>
         </div>
@@ -251,10 +269,12 @@
     $('preview').disabled = value;
     $('close').disabled = value;
     $('refresh').disabled = value;
-    $('confirm').disabled = value || !plan?.items.length;
-    $('preview').classList.toggle('primary', !plan?.items.length && $('refresh').hidden);
-    $('refresh').classList.toggle('primary', !plan?.items.length);
-    $('confirm').classList.toggle('primary', Boolean(plan?.items.length));
+    const selected = plan?.items.some(item => item.selected);
+    $('confirm').disabled = value || !selected;
+    $('preview').classList.toggle('primary', !selected && $('refresh').hidden);
+    $('refresh').classList.toggle('primary', !selected);
+    $('confirm').classList.toggle('primary', Boolean(selected));
+    for (const control of $('evaluation').querySelectorAll('fieldset, input[type="checkbox"]')) control.disabled = value || !plan;
     $('settings').setAttribute('aria-busy', String(value));
   }
 
@@ -336,7 +356,7 @@
     if (savedComment !== undefined && typeof savedComment !== 'string') fail(`${course.name}：已有评语无法识别。`);
     const hasComment = Boolean(savedComment?.trim());
     return {
-      course, fields, hasOverall, hasComment,
+      course, fields, hasOverall, hasComment, selected: true,
       payload: { xsxkxxid: course.id, overallRating: String(overall), comment: hasComment ? savedComment : preset.comment, ratings: fields.map(f => ({ zbid: f.indicator.id, score: f.score })) },
     };
   }
@@ -349,38 +369,131 @@
     return p;
   }
 
-  function showPlan(items) {
+  function updateSelection() {
+    const count = plan.items.filter(item => item.selected).length;
+    $('count').textContent = `已选 ${count} / ${plan.items.length}`;
+    $('select-all').checked = count > 0 && count === plan.items.length;
+    $('select-all').indeterminate = count > 0 && count < plan.items.length;
+    $('status').textContent = count ? `${plan.semester}：将提交 ${count} 个条目，请展开核对后确认。` : '尚未选择课程，请勾选要评价的条目。';
+    lock(false);
+  }
+
+  function showPlan(items, range) {
     $('list').replaceChildren();
-    $('count').textContent = `${items.length} 个条目`;
+    $('selection').hidden = !items.length;
     $('empty').hidden = items.length > 0;
     if (!items.length) $('empty').innerHTML = '<strong>当前学期没有待评条目</strong><p class="muted">已提交和非待评状态的条目不会列入清单。</p>';
-    for (const item of items) {
+    for (const [index, item] of items.entries()) {
       const li = document.createElement('li');
-      li.className = 'card';
-      const header = document.createElement('div');
-      header.className = 'course-heading';
-      const heading = document.createElement('h3');
-      heading.textContent = `${item.course.name} · ${item.course.teacher}`;
-      header.append(heading);
-      item.result = paragraph(header, '待确认', 'result');
-      li.append(header);
+      const name = `${item.course.name} · ${item.course.teacher}`;
+      const selection = document.createElement('label');
+      selection.className = 'checkbox course-select';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = true;
+      checkbox.setAttribute('aria-label', `评价 ${name}`);
+      selection.append(checkbox);
+      const details = document.createElement('details');
+      const summary = document.createElement('summary');
+      const heading = document.createElement('span');
+      heading.className = 'course-name';
+      const courseTitle = document.createElement('span');
+      courseTitle.className = 'course-title';
+      courseTitle.textContent = item.course.name;
+      const teacher = document.createElement('span');
+      teacher.className = 'teacher';
+      teacher.textContent = item.course.teacher;
+      heading.append(courseTitle, teacher);
+      summary.append(heading);
+      item.result = document.createElement('span');
+      item.result.className = 'result';
+      summary.append(item.result);
+      const editor = document.createElement('fieldset');
+      editor.className = 'editor';
+      editor.setAttribute('aria-label', `${name}的评价内容`);
+      details.append(summary, editor);
+      li.append(selection, details);
+      const updateSummary = () => { item.result.textContent = item.selected ? (item.payload.overallRating ? `${item.payload.overallRating} 分` : '待填写') : '本次不评'; };
+      checkbox.addEventListener('change', () => {
+        item.selected = checkbox.checked;
+        updateSummary();
+        updateSelection();
+      });
       for (const f of item.fields) {
-        const row = document.createElement('div');
-        row.className = 'rating';
-        const line = paragraph(row, '', 'rating-line');
+        const label = document.createElement('label');
         const title = document.createElement('span');
-        title.textContent = `${f.indicator.title}：`;
-        const value = document.createElement('strong');
-        value.textContent = `${grades[f.grade][0]}，${f.score} / ${f.indicator.maxScore}${f.preserved ? '（保留草稿）' : ''}`;
-        line.append(title, value);
-        if (f.indicator.description) paragraph(row, f.indicator.description, 'muted');
-        li.append(row);
+        title.textContent = f.indicator.title;
+        const select = document.createElement('select');
+        for (const [value, [text, weight]] of Object.entries(grades)) select.add(new Option(`${text} · ${Number(f.indicator.maxScore) * weight} / ${f.indicator.maxScore}`, value));
+        select.value = f.grade;
+        label.append(title, select);
+        const source = paragraph(label, f.preserved ? '保留草稿' : '来自统一设置', 'muted');
+        if (f.indicator.description) paragraph(label, f.indicator.description, 'muted');
+        select.addEventListener('change', () => {
+          f.grade = select.value;
+          f.score = Number(f.indicator.maxScore) * grades[f.grade][1];
+          item.payload.ratings = item.fields.map(field => ({ zbid: field.indicator.id, score: field.score }));
+          source.textContent = '本次修改';
+        });
+        editor.append(label);
       }
-      paragraph(li, `综合评分：${item.payload.overallRating}${item.hasOverall ? '（保留草稿）' : ''}`, 'rating');
-      paragraph(li, `评语${item.hasComment ? '（保留草稿）' : ''}：${item.payload.comment || '（留空）'}`, 'comment');
+      const overallLabel = document.createElement('label');
+      const overallTitle = document.createElement('span');
+      overallTitle.textContent = '综合评分';
+      const overall = document.createElement('input');
+      overall.type = 'number';
+      overall.min = $('overall').min;
+      overall.max = String(range.max);
+      overall.step = '1';
+      overall.required = true;
+      overall.value = item.payload.overallRating;
+      overallLabel.append(overallTitle, overall);
+      const overallSource = paragraph(overallLabel, item.hasOverall ? '保留草稿' : '来自统一设置', 'muted');
+      const error = paragraph(overallLabel, `请输入 ${overall.min}–${range.max} 范围内的整数，不能使用网站初始值 ${range.initial}。`, 'field-error');
+      error.id = `course-error-${index}`;
+      error.hidden = true;
+      overall.setAttribute('aria-describedby', error.id);
+      item.validate = () => {
+        const value = Number(overall.value);
+        const valid = overall.value !== '' && overall.checkValidity() && value !== range.initial;
+        overall.setAttribute('aria-invalid', String(!valid));
+        error.hidden = valid;
+        return valid;
+      };
+      item.focusInvalid = () => { details.open = true; overall.focus(); };
+      overall.addEventListener('blur', item.validate);
+      overall.addEventListener('input', () => {
+        item.payload.overallRating = overall.value === '' ? '' : String(Number(overall.value));
+        overallSource.textContent = '本次修改';
+        updateSummary();
+        if (overall.getAttribute('aria-invalid') === 'true') item.validate();
+      });
+      const commentLabel = document.createElement('label');
+      commentLabel.className = 'wide';
+      const commentTitle = document.createElement('span');
+      commentTitle.textContent = '评语';
+      const comment = document.createElement('textarea');
+      comment.rows = 3;
+      comment.value = item.payload.comment;
+      commentLabel.append(commentTitle, comment);
+      const commentSource = paragraph(commentLabel, item.hasComment ? '保留草稿' : '来自统一设置，可留空', 'muted');
+      comment.addEventListener('input', () => {
+        item.payload.comment = comment.value;
+        commentSource.textContent = '本次修改';
+      });
+      editor.append(overallLabel, commentLabel);
+      updateSummary();
       $('list').append(li);
     }
   }
+
+  $('select-all').addEventListener('change', () => {
+    const checked = $('select-all').checked;
+    for (const checkbox of $('list').querySelectorAll('input[type="checkbox"]')) {
+      checkbox.checked = checked;
+      checkbox.dispatchEvent(new Event('change'));
+    }
+  });
 
   $('launch').addEventListener('click', () => {
     dialog.showModal();
@@ -398,6 +511,7 @@
     plan = null;
     $('confirm').disabled = true;
     $('list').replaceChildren();
+    $('selection').hidden = true;
     $('preview').classList.toggle('primary', $('refresh').hidden);
     $('confirm').classList.remove('primary');
     $('error').textContent = '';
@@ -417,6 +531,7 @@
     $('empty').hidden = false;
     $('empty').innerHTML = '<strong>正在读取待评条目…</strong><p class="muted">正在核对当前学期、指标和已有草稿。</p>';
     $('list').replaceChildren();
+    $('selection').hidden = true;
     try {
       const modal = document.getElementById('evaluationModal');
       if (modal && getComputedStyle(modal).display !== 'none') fail('请先关闭网站的单门评教窗口，保存当前草稿后再预览。');
@@ -434,9 +549,10 @@
         items.push(prepare(course, byType.get(course.kcxz), semester, draft, preset, range));
       }
       plan = { semester, items, draftRaw, reviewedAt: Date.now() };
-      showPlan(items);
+      showPlan(items, range);
+      updateSelection();
       $('list-title').scrollIntoView({ block: 'start', behavior: 'instant' });
-      $('status').textContent = `${semester}：${items.length} 个待评条目。${items.length ? '请逐项核对后确认提交。' : '无需提交。'}`;
+      if (!items.length) $('status').textContent = `${semester}：0 个待评条目，无需提交。`;
     } catch (error) {
       $('status').textContent = '未生成提交计划。';
       $('count').textContent = '未生成';
@@ -451,9 +567,14 @@
     $('stop').disabled = true;
     $('status').textContent = '正在停止；如已发出提交请求，将先核实当前条目的结果。';
   });
-  $('confirm').addEventListener('click', async () => {
-    if (busy || !plan?.items.length) return;
-    const batch = plan;
+  $('evaluation').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (busy || !plan) return;
+    const selected = plan.items.filter(item => item.selected);
+    if (!selected.length) return;
+    const invalid = selected.find(item => !item.validate());
+    if (invalid) { invalid.focusInvalid(); return; }
+    const batch = { ...plan, items: selected };
     plan = null;
     lock(true);
     stopping = false;
