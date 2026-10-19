@@ -11,7 +11,7 @@ const indicators = [
   { id: 'method', title: '教学方法', description: '讲授是否清楚', type: '选项问答', maxScore: '25', options: 'A;B;C;D;E' },
 ];
 
-async function site(page, { draft, courses, save, definitions = indicators } = {}) {
+async function site(page, { draft, courses, save, readCourses, definitions = indicators } = {}) {
   const rows = courses ?? [course('first', '教师甲'), course('second', '教师乙'),
     course('done', '已提交教师', { completed: true, status: '已提交' }),
     course('rejected', '被驳回教师', { completed: true, status: '已评课(被驳回)' })];
@@ -20,11 +20,11 @@ async function site(page, { draft, courses, save, definitions = indicators } = {
     const request = route.request();
     const path = new URL(request.url()).pathname;
     if (request.isNavigationRequest() && request.url() === url) {
-      return route.fulfill({ contentType: 'text/html', body: '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>评教测试</title><input id="overallRating" type="range" min="1" max="95" step="1" data-initial="1"><div id="evaluationModal" style="display:none"></div></html>' });
+      return route.fulfill({ contentType: 'text/html', body: '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>评教测试</title><body style="margin:0;background:#f5f5f5"><input hidden id="overallRating" type="range" min="1" max="95" step="1" data-initial="1"><div id="evaluationModal" style="display:none"></div></html>' });
     }
     const reply = data => route.fulfill({ json: { success: true, data } });
     if (path.endsWith('/getSemesters')) return reply([{ xq: semester, iscurrent: true }, { xq: '2025-2026-2', iscurrent: false }]);
-    if (path.endsWith('/getCourses')) return reply(rows);
+    if (path.endsWith('/getCourses')) return readCourses ? readCourses({ route, rows }) : reply(rows);
     if (path.endsWith('/getIndicators')) return reply(definitions);
     if (path.endsWith('/saveEvaluation') && request.method() === 'POST') {
       const payload = request.postDataJSON();
@@ -41,11 +41,12 @@ async function site(page, { draft, courses, save, definitions = indicators } = {
   return { submissions, rows };
 }
 
-async function preview(page) {
+async function preview(page, settingsScreenshot) {
   await page.getByRole('button', { name: '快速评教', exact: true }).click();
   await page.getByLabel('满意度档位').selectOption('B');
   await page.getByLabel('综合评分').fill('90');
   await page.getByLabel('统一评语').fill('示例意见，仅用于自动化测试。');
+  if (settingsScreenshot) await page.screenshot({ path: settingsScreenshot });
   await page.getByRole('button', { name: '预览待评清单' }).click();
   await expect(page.getByRole('button', { name: '预览待评清单' })).toBeEnabled();
 }
@@ -94,7 +95,8 @@ test('确认后逐条提交预览内容，核实成功并保留其他草稿，�
   expect(submissions).toHaveLength(2);
 });
 
-test('停止后等待当前请求核实，不启动下一条', async ({ page }) => {
+test('停止后等待当前请求核实，不启动下一条', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 640 });
   let release;
   const gate = new Promise(resolve => { release = resolve; });
   const { submissions } = await site(page, { save: async ({ route, payload, rows }) => {
@@ -105,14 +107,18 @@ test('停止后等待当前请求核实，不启动下一条', async ({ page }) 
   await preview(page);
   await page.getByRole('button', { name: '确认并开始提交' }).click();
   await expect.poll(() => submissions.length).toBe(1);
+  await expect(page.getByRole('button', { name: '停止后续提交' })).toBeInViewport();
+  await page.screenshot({ path: testInfo.outputPath('submitting.png') });
   await page.getByRole('button', { name: '停止后续提交' }).click();
   release();
   await expect(page.getByRole('status')).toHaveText('已停止：1 / 2 个条目已核实提交成功。');
   expect(submissions).toHaveLength(1);
 });
 
-for (const failure of ['服务器拒绝', '网络中断', '回读仍未提交']) {
-  test(`${failure}时停止并保留成功进度，不自动重试或提交后续条目`, async ({ page }) => {
+for (const failure of ['服务器拒绝', '网络中断', '回读仍未提交', '长服务器错误']) {
+  test(`${failure}时停止并保留成功进度，不自动重试或提交后续条目`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 390, height: 740 });
+    await page.emulateMedia({ colorScheme: 'dark' });
     const { submissions } = await site(page, {
       courses: [course('first', '教师甲'), course('second', '教师乙'), course('third', '教师丙')],
       save: async ({ route, payload, rows }) => {
@@ -121,6 +127,7 @@ for (const failure of ['服务器拒绝', '网络中断', '回读仍未提交'])
           return route.fulfill({ json: { success: true, data: {} } });
         }
         if (failure === '网络中断') return route.abort('connectionreset');
+        if (failure === '长服务器错误') return route.fulfill({ json: { success: false, msg: '服务器详细错误说明。'.repeat(100) } });
         if (failure === '服务器拒绝') return route.fulfill({ json: { success: false, msg: '当前条目不可评价' } });
         return route.fulfill({ json: { success: true, data: {} } });
       },
@@ -131,6 +138,8 @@ for (const failure of ['服务器拒绝', '网络中断', '回读仍未提交'])
     await expect(page.getByRole('alert')).toContainText('请先刷新核实');
     await expect(page.getByRole('button', { name: '确认并开始提交' })).toBeDisabled();
     expect(submissions.map(s => s.xsxkxxid)).toEqual(['first', 'second']);
+    await expect(page.getByRole('button', { name: '刷新课程列表' })).toBeInViewport();
+    await page.screenshot({ path: testInfo.outputPath('failed.png') });
   });
 }
 
@@ -188,4 +197,90 @@ test('小屏可操作且重复加载只保留一个入口，文本不会被执�
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: '快速评教', exact: true })).toBeFocused();
   expect(submissions).toEqual([]);
+});
+
+for (const colorScheme of ['light', 'dark']) {
+  for (const width of [320, 390, 768, 1440]) {
+    test(`${width}px / ${colorScheme}：长内容重排、操作可达且触屏尺寸充足`, async ({ page }, testInfo) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await site(page, { courses: [course('first', '教师甲'), course('second', '教师乙', { name: '长课程名称与连续标识' + 'CourseIdentifier'.repeat(6) })] });
+      await preview(page, testInfo.outputPath('settings.png'));
+      const dialog = page.getByRole('dialog');
+      const layout = await dialog.evaluate(node => {
+        const box = node.getBoundingClientRect();
+        const controls = [...node.querySelectorAll('button:not([hidden]), input, select, textarea')];
+        return {
+          x: box.x, right: box.right, bottom: box.bottom, viewport: innerWidth,
+          overflow: [...node.querySelectorAll('*')].some(el => el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).display !== 'inline' && el.clientWidth > 0),
+          controls: controls.map(el => ({ height: el.getBoundingClientRect().height, width: el.getBoundingClientRect().width })),
+          inputFonts: [...node.querySelectorAll('input, select, textarea')].map(el => parseFloat(getComputedStyle(el).fontSize)),
+          color: getComputedStyle(node).backgroundColor,
+        };
+      });
+      expect(layout.x).toBeGreaterThanOrEqual(0);
+      expect(layout.right).toBeLessThanOrEqual(width);
+      expect(layout.bottom).toBeLessThanOrEqual(900);
+      expect(layout.overflow).toBe(false);
+      expect(layout.controls.every(c => c.height >= 44 && c.width >= 44)).toBe(true);
+      expect(layout.inputFonts.every(size => size >= 16)).toBe(true);
+      expect(layout.color).toBe(colorScheme === 'dark' ? 'oklch(0.235 0 0)' : 'oklch(0.985 0 0)');
+      await expect(page.getByRole('button', { name: '确认并开始提交' })).toBeInViewport();
+      await expect(page.getByRole('heading', { name: '待评清单', exact: true })).toBeInViewport();
+      await page.screenshot({ path: testInfo.outputPath('preview-start.png') });
+      await page.getByRole('listitem').last().scrollIntoViewIfNeeded();
+      await expect(page.getByRole('button', { name: '确认并开始提交' })).toBeInViewport();
+      await page.screenshot({ path: testInfo.outputPath('preview.png') });
+    });
+  }
+}
+
+test('主题随系统即时更新，刷新仍正确且不修改学校页面的主题', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await site(page);
+  await page.getByRole('button', { name: '快速评教', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCSS('background-color', 'oklch(0.985 0 0)');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(page.getByRole('dialog')).toHaveCSS('background-color', 'oklch(0.235 0 0)');
+  expect(await page.evaluate(() => document.documentElement.getAttribute('data-theme'))).toBeNull();
+  expect(await page.evaluate(() => localStorage.length)).toBe(0);
+  await page.reload();
+  await page.addScriptTag({ path: 'jxzljc.user.js' });
+  await page.getByRole('button', { name: '快速评教', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCSS('background-color', 'oklch(0.235 0 0)');
+});
+
+test('键盘校验、慢加载和空清单均可理解，关闭恢复焦点', async ({ page }) => {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  await site(page, { courses: [], readCourses: async ({ route }) => {
+    await gate;
+    return route.fulfill({ json: { success: true, data: [] } });
+  } });
+  const launcher = page.getByRole('button', { name: '快速评教', exact: true });
+  await launcher.focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: '预览待评清单' }).click();
+  await expect(page.getByLabel('满意度档位')).toBeFocused();
+  await page.getByLabel('满意度档位').selectOption('B');
+  await page.getByLabel('综合评分').fill('96');
+  await page.getByRole('button', { name: '预览待评清单' }).click();
+  await expect(page.getByLabel('综合评分')).toBeFocused();
+  await page.getByLabel('综合评分').fill('90');
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('status')).toContainText('正在读取');
+  await expect(page.getByRole('button', { name: '确认并开始提交' })).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toBeVisible();
+  release();
+  await expect(page.getByText('当前学期没有待评条目', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '确认并开始提交' })).toBeDisabled();
+  await page.getByRole('button', { name: '关闭快速评教' }).focus();
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press('Tab');
+    // Native dialog may yield focus to browser chrome, but never to the underlying page.
+    expect(await page.getByRole('dialog').evaluate(node => node.contains(node.getRootNode().activeElement) || (node.getRootNode().activeElement === null && document.activeElement === document.body))).toBe(true);
+  }
+  await page.keyboard.press('Escape');
+  await expect(launcher).toBeFocused();
 });
