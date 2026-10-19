@@ -151,6 +151,7 @@
       .eyebrow { font-size: var(--text-xs); color: var(--muted-foreground); margin-bottom: var(--space-2); }
       .description { color: var(--muted-foreground); font-size: var(--text-sm); margin-top: var(--space-2); }
       .content { flex: 1; padding: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: var(--space-6); min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+      .content:has(#progress-step:not([hidden])) { grid-template-rows: auto minmax(7rem, 1fr); }
       .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
       .card { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-card); padding: var(--space-5); }
       fieldset { margin: 0; border: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-5); min-width: 0; }
@@ -159,6 +160,18 @@
       input, select, textarea { width: 100%; min-width: 0; min-height: 44px; padding: var(--space-2) var(--space-3); border: 1px solid var(--input); border-radius: var(--radius); color: var(--foreground); background: var(--surface); font-size: max(16px, var(--text-base)); font-weight: 400; }
       :is(input, textarea)::placeholder { color: var(--muted-foreground); opacity: 1; }
       :is(input, select, textarea):disabled { background: var(--muted); color: var(--muted-foreground); cursor: not-allowed; }
+      @supports (appearance: base-select) {
+        select, select::picker(select) { appearance: base-select; }
+        select { align-items: center; cursor: pointer; }
+        select::picker(select) { padding: var(--space-1); margin-block: var(--space-1); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); color: var(--foreground); box-shadow: var(--shadow-popover); max-height: min(24rem, 60dvh); overflow-y: auto; }
+        select::picker-icon { content: ''; width: 8px; height: 8px; margin-inline-end: var(--space-1); border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; color: var(--muted-foreground); transform: rotate(45deg); }
+        select:open::picker-icon { transform: rotate(225deg); }
+        option { min-height: 44px; padding: var(--space-2) var(--space-3); border-radius: var(--radius); font: inherit; gap: var(--space-3); }
+        option:checked { background: var(--muted); font-weight: 500; }
+        option:is(:hover, :focus-visible) { background: var(--accent); outline: 2px solid var(--ring); outline-offset: -2px; }
+        option::checkmark { order: 1; margin-left: auto; color: var(--foreground); }
+        option[value=""] { color: var(--muted-foreground); }
+      }
       textarea { resize: vertical; min-height: 6rem; }
       .muted { color: var(--muted-foreground); font-size: var(--text-sm); font-weight: 400; }
       .count { color: var(--muted-foreground); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
@@ -189,8 +202,9 @@
       .result { font-size: var(--text-xs); color: var(--muted-foreground); background: var(--muted); border-radius: var(--radius-sm); padding: var(--space-1) var(--space-2); }
       .result[data-state="success"] { color: var(--success); }
       .result[data-state="error"] { color: var(--destructive); }
-      #records { max-height: calc(var(--space-8) * 4 + 2px); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
-      #records li { height: calc(var(--space-8) * 2); padding: var(--space-2) var(--space-4); display: grid; align-content: center; }
+      #records-step { display: flex; flex-direction: column; min-height: 0; max-height: min(16rem, 32dvh); }
+      #records { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+      #records li { padding: var(--space-3) var(--space-4); display: grid; align-content: center; }
       .record-name { font-size: var(--text-sm); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
       .record-detail { display: flex; align-items: baseline; gap: var(--space-2); }
       #records .teacher { flex: 1; min-width: 0; max-width: none; }

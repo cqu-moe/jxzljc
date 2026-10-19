@@ -211,7 +211,7 @@ test('停止后等待当前请求核实，不启动下一条', async ({ page }, 
   await expect(records).toContainText('已核实提交成功');
 });
 
-test('20门课程的记录只占两行高度，最新在上且历史可滚动，新课程自动回到顶部', async ({ page }, testInfo) => {
+test('20门课程的记录窗口随空间伸缩，最新在上且历史可滚动，新课程自动回到顶部', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.emulateMedia({ colorScheme: 'dark' });
   let releaseEighteen;
@@ -238,6 +238,7 @@ test('20门课程的记录只占两行高度，最新在上且历史可滚动，
   await expect(rows.nth(1)).toContainText('示例教师 17');
   await expect(rows.nth(1)).toContainText('已核实提交成功');
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '17');
+  const heights = [];
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: width === 1440 ? 900 : 740 });
     await records.scrollIntoViewIfNeeded();
@@ -245,15 +246,17 @@ test('20门课程的记录只占两行高度，最新在上且历史可滚动，
       viewport: el.clientHeight, row: el.firstElementChild.getBoundingClientRect().height,
       scroll: el.scrollHeight, width: el.clientWidth, contentWidth: el.scrollWidth,
     }));
-    expect(size.viewport).toBe(size.row * 2);
+    heights.push(size.viewport);
+    expect(size.viewport).toBeGreaterThanOrEqual(size.row);
+    expect(size.viewport).toBeLessThanOrEqual(256);
     expect(size.scroll).toBeGreaterThan(size.viewport);
     expect(size.contentWidth).toBe(size.width);
     await expect(rows.first()).toBeInViewport();
-    await expect(rows.nth(1)).toBeInViewport();
-    await expect(rows.nth(2)).not.toBeInViewport();
+    await expect(rows.last()).not.toBeInViewport();
     await expect(page.getByRole('button', { name: '停止后续提交' })).toBeInViewport();
     await page.screenshot({ path: testInfo.outputPath(`many-courses-${width}.png`) });
   }
+  expect(heights[0]).toBeGreaterThan(heights[1]);
   await records.focus();
   await page.keyboard.press('End');
   await expect.poll(() => records.evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBe(0);
@@ -266,7 +269,7 @@ test('20门课程的记录只占两行高度，最新在上且历史可滚动，
   await expect(records).toBeFocused();
   await expect.poll(() => records.evaluate(el => el.scrollTop)).toBe(0);
   await expect(rows.first()).toBeInViewport();
-  await expect(rows.nth(2)).not.toBeInViewport();
+  await expect(rows.last()).not.toBeInViewport();
   releaseNineteen();
   await expect(page.getByRole('status')).toHaveText('完成：20 / 20 个条目已核实提交成功。');
   await expect(rows).toHaveCount(20);
@@ -274,6 +277,56 @@ test('20门课程的记录只占两行高度，最新在上且历史可滚动，
   await expect(rows.first()).toContainText('已核实提交成功');
   expect(submissions.map(payload => payload.xsxkxxid)).toEqual(courses.map(c => c.id));
 });
+
+for (const colorScheme of ['light', 'dark']) {
+  test(`${colorScheme}下拉菜单适配主题和窄屏，鼠标与键盘选择保留表单行为`, async ({ page }, testInfo) => {
+    await page.emulateMedia({ colorScheme });
+    const { submissions } = await site(page);
+    await page.getByRole('button', { name: '快速评教', exact: true }).click();
+    const grade = page.getByLabel('满意度档位');
+    for (const width of [1440, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      await grade.click();
+      const option = page.getByRole('option', { name: '满意', exact: true });
+      await expect(option).toBeVisible();
+      const box = await option.boundingBox();
+      expect(box.height).toBeGreaterThanOrEqual(44);
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+      const picker = await grade.evaluate(el => {
+        const style = getComputedStyle(el, '::picker(select)');
+        return { background: style.backgroundColor, radius: parseFloat(style.borderRadius) };
+      });
+      expect(picker.radius).toBeGreaterThan(0);
+      expect(picker.background).toBe(colorScheme === 'dark' ? 'oklch(0.265 0 0)' : 'oklch(1 0 0)');
+      await page.screenshot({ path: testInfo.outputPath(`select-${colorScheme}-${width}.png`) });
+      await option.click();
+      await expect(grade).toHaveValue('B');
+      await expect(grade).toBeFocused();
+    }
+    await grade.press('Space');
+    await expect(page.getByRole('option', { name: '满意', exact: true })).toBeVisible();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(grade).toHaveValue('C');
+    await grade.press('Space');
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('option', { name: '满意', exact: true })).toBeHidden();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(grade).toBeFocused();
+    await page.getByLabel('综合评分').fill('90');
+    await page.getByRole('button', { name: '下一步' }).click();
+    const first = page.getByRole('listitem').first();
+    await first.locator('summary').click();
+    await first.getByLabel('教学设计').click();
+    await first.getByRole('option', { name: '不满意 · 6 / 15', exact: true }).click();
+    await expect(first.getByLabel('教学设计')).toHaveValue('D');
+    expect(submissions).toEqual([]);
+    await page.getByRole('button', { name: '开始刷课' }).click();
+    await expect(page.getByRole('status')).toHaveText('完成：2 / 2 个条目已核实提交成功。');
+    expect(submissions[0].ratings).toEqual([{ zbid: 'design', score: 6 }, { zbid: 'method', score: 15 }]);
+  });
+}
 
 test('进度只在回读核实后增长，完成后到达100%并停止动效', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 900 });
