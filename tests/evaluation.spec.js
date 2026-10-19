@@ -129,7 +129,8 @@ test('勾选与逐课修改共同决定提交内容，展开收起和取消勾�
     { xsxkxxid: 'second', overallRating: '83', comment: '为教师乙单独填写的意见', ratings: [{ zbid: 'design', score: 6 }, { zbid: 'method', score: 20 }] },
   ]);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('evaluationState')))).toEqual(draft);
-  await expect(second.getByLabel('综合评分')).toBeDisabled();
+  await expect(page.getByRole('list', { name: '待评清单' })).toBeHidden();
+  await expect(page.getByRole('list', { name: '提交记录' }).getByRole('listitem')).toHaveCount(1);
 });
 
 test('校验所有已选课程后才提交，收起的错误会展开定位，未选课程不阻塞', async ({ page }) => {
@@ -194,9 +195,11 @@ test('停止后等待当前请求核实，不启动下一条', async ({ page }, 
   await page.getByRole('button', { name: '开始刷课' }).click();
   await expect.poll(() => submissions.length).toBe(1);
   await expect(page.getByRole('checkbox', { name: '全选待评课程' })).toBeHidden();
-  await expect(page.getByRole('listitem').first().getByRole('checkbox')).toBeDisabled();
-  await page.getByRole('listitem').first().locator('summary').click();
-  await expect(page.getByRole('listitem').first().getByLabel('综合评分')).toBeDisabled();
+  await expect(page.getByRole('list', { name: '待评清单' })).toBeHidden();
+  const records = page.getByRole('list', { name: '提交记录' });
+  await expect(records.getByRole('listitem')).toHaveCount(1);
+  await expect(records).toContainText('正在提交…');
+  await expect(records.locator('input, select, textarea, summary')).toHaveCount(0);
   await expect(page.getByRole('button', { name: '停止后续提交' })).toBeInViewport();
   await page.screenshot({ path: testInfo.outputPath('submitting.png') });
   await page.getByRole('button', { name: '停止后续提交' }).click();
@@ -205,6 +208,71 @@ test('停止后等待当前请求核实，不启动下一条', async ({ page }, 
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '2');
   expect(submissions).toHaveLength(1);
+  await expect(records).toContainText('已核实提交成功');
+});
+
+test('20门课程的记录只占两行高度，最新在上且历史可滚动，新课程自动回到顶部', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ colorScheme: 'dark' });
+  let releaseEighteen;
+  let releaseNineteen;
+  const eighteenth = new Promise(resolve => { releaseEighteen = resolve; });
+  const nineteenth = new Promise(resolve => { releaseNineteen = resolve; });
+  const courses = Array.from({ length: 20 }, (_, i) => course(String(i + 1), `示例教师 ${i + 1}`, {
+    name: `示例课程 ${i + 1}：${i >= 17 ? '较长的课程名称用于核对多课程提交时的窄屏显示' : '课程评价'}`,
+  }));
+  const { submissions } = await site(page, { courses, save: async ({ route, payload, rows }) => {
+    if (payload.xsxkxxid === '18') await eighteenth;
+    if (payload.xsxkxxid === '19') await nineteenth;
+    Object.assign(rows.find(row => row.id === payload.xsxkxxid), { completed: true, status: '已提交' });
+    await route.fulfill({ json: { success: true, data: {} } });
+  } });
+  await preview(page);
+  await page.getByRole('button', { name: '开始刷课' }).click();
+  await expect.poll(() => submissions.length).toBe(18);
+  const records = page.getByRole('region', { name: '提交记录' }).getByRole('list');
+  const rows = records.getByRole('listitem');
+  await expect(rows).toHaveCount(18);
+  await expect(rows.first()).toContainText('示例教师 18');
+  await expect(rows.first()).toContainText('正在提交…');
+  await expect(rows.nth(1)).toContainText('示例教师 17');
+  await expect(rows.nth(1)).toContainText('已核实提交成功');
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '17');
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: width === 1440 ? 900 : 740 });
+    await records.scrollIntoViewIfNeeded();
+    const size = await records.evaluate(el => ({
+      viewport: el.clientHeight, row: el.firstElementChild.getBoundingClientRect().height,
+      scroll: el.scrollHeight, width: el.clientWidth, contentWidth: el.scrollWidth,
+    }));
+    expect(size.viewport).toBe(size.row * 2);
+    expect(size.scroll).toBeGreaterThan(size.viewport);
+    expect(size.contentWidth).toBe(size.width);
+    await expect(rows.first()).toBeInViewport();
+    await expect(rows.nth(1)).toBeInViewport();
+    await expect(rows.nth(2)).not.toBeInViewport();
+    await expect(page.getByRole('button', { name: '停止后续提交' })).toBeInViewport();
+    await page.screenshot({ path: testInfo.outputPath(`many-courses-${width}.png`) });
+  }
+  await records.focus();
+  await page.keyboard.press('End');
+  await expect.poll(() => records.evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBe(0);
+  await expect(rows.last()).toBeInViewport();
+  await expect(rows.last()).toContainText('示例教师 1');
+  releaseEighteen();
+  await expect.poll(() => submissions.length).toBe(19);
+  await expect(rows.first()).toContainText('示例教师 19');
+  await expect(rows.nth(1)).toContainText('示例教师 18');
+  await expect(records).toBeFocused();
+  await expect.poll(() => records.evaluate(el => el.scrollTop)).toBe(0);
+  await expect(rows.first()).toBeInViewport();
+  await expect(rows.nth(2)).not.toBeInViewport();
+  releaseNineteen();
+  await expect(page.getByRole('status')).toHaveText('完成：20 / 20 个条目已核实提交成功。');
+  await expect(rows).toHaveCount(20);
+  await expect(rows.first()).toContainText('示例教师 20');
+  await expect(rows.first()).toContainText('已核实提交成功');
+  expect(submissions.map(payload => payload.xsxkxxid)).toEqual(courses.map(c => c.id));
 });
 
 test('进度只在回读核实后增长，完成后到达100%并停止动效', async ({ page }, testInfo) => {
@@ -301,6 +369,11 @@ for (const failure of ['服务器拒绝', '网络中断', '回读仍未提交', 
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '3');
     expect(submissions.map(s => s.xsxkxxid)).toEqual(['first', 'second']);
+    const records = page.getByRole('list', { name: '提交记录' }).getByRole('listitem');
+    await expect(records).toHaveCount(2);
+    await expect(records.first()).toContainText('教师乙');
+    await expect(records.first()).toContainText('结果未确认');
+    await expect(records.nth(1)).toContainText('已核实提交成功');
     await expect(page.getByRole('button', { name: '刷新课程列表' })).toBeInViewport();
     await page.screenshot({ path: testInfo.outputPath('failed.png') });
   });
@@ -313,6 +386,7 @@ test('确认前草稿变化会停止，重新预览才采用新内容', async ({
   await page.getByRole('button', { name: '开始刷课' }).click();
   await expect(page.getByRole('alert')).toContainText('草稿已变化');
   expect(submissions).toEqual([]);
+  await expect(page.getByRole('list', { name: '提交记录' })).toContainText('未提交');
   await page.getByRole('button', { name: '刷新课程列表' }).click();
   await page.addScriptTag({ path: 'jxzljc.user.js' });
   await preview(page);

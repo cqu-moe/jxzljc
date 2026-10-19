@@ -132,7 +132,7 @@
       button, input, select, textarea { font: inherit; }
       button { min-height: 44px; padding: var(--space-2) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--foreground); font-size: var(--text-sm); font-weight: 500; cursor: pointer; touch-action: manipulation; }
       button:disabled { color: var(--muted-foreground); background: var(--muted); cursor: not-allowed; }
-      :is(button, input, select, textarea, summary):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+      :is(button, input, select, textarea, summary, #records):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
       .primary:not(:disabled) { color: var(--primary-foreground); background: var(--primary); border-color: var(--primary); }
       @media (hover: hover) { button:not(:disabled):hover { background: var(--accent); } .primary:not(:disabled):hover { background: color-mix(in oklab, var(--primary) 85%, var(--surface)); } }
       button:not(:disabled):active { background: var(--muted); }
@@ -189,6 +189,12 @@
       .result { font-size: var(--text-xs); color: var(--muted-foreground); background: var(--muted); border-radius: var(--radius-sm); padding: var(--space-1) var(--space-2); }
       .result[data-state="success"] { color: var(--success); }
       .result[data-state="error"] { color: var(--destructive); }
+      #records { max-height: calc(var(--space-8) * 4 + 2px); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+      #records li { height: calc(var(--space-8) * 2); padding: var(--space-2) var(--space-4); display: grid; align-content: center; }
+      .record-name { font-size: var(--text-sm); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .record-detail { display: flex; align-items: baseline; gap: var(--space-2); }
+      #records .teacher { flex: 1; min-width: 0; max-width: none; }
+      #records .result { flex: none; padding: 0; background: none; }
       .progress-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-6) 0 var(--space-3); }
       #percent { font-size: var(--text-display); line-height: 1; font-weight: 600; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
       .progress-track { height: var(--space-3); background: var(--muted); border-radius: var(--radius); overflow: hidden; }
@@ -203,11 +209,13 @@
         :host([data-motion="on"]) .progress-fill { transition: transform 280ms var(--ease-out); }
         :host([data-motion="on"]) #progress-step[data-state="running"] .progress-fill::after { animation: sweep 1.4s linear infinite; }
         :host([data-motion="on"]) #progress-step[data-state="running"] .activity-dot { animation: pulse 1.2s ease-in-out infinite; }
+        :host([data-motion="on"]) #records li:first-child { animation: record-enter 180ms var(--ease-out); }
         :host([data-motion="on"]) button { transition: transform var(--duration-feedback) var(--ease-out); }
         :host([data-motion="on"]) button:not(:disabled):active { transform: scale(0.97); }
       }
       @keyframes sweep { from { transform: translateX(-100%); opacity: 0.1; } 50% { opacity: 0.35; } to { transform: translateX(100%); opacity: 0.1; } }
       @keyframes pulse { 50% { opacity: 0.35; } }
+      @keyframes record-enter { from { transform: translateY(-8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       footer { display: grid; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border); background: var(--surface); }
       .feedback { display: grid; gap: var(--space-3); max-height: min(10rem, 25dvh); overflow-y: auto; }
       #status, #error { font-size: var(--text-sm); white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -256,6 +264,10 @@
           <div class="progress-current"><span class="activity-dot" aria-hidden="true"></span><p id="current-course">尚未开始提交课程</p></div>
           <p id="progress-phase" class="description">服务器核实成功后计入进度。</p>
         </section>
+        <section id="records-step" aria-labelledby="records-title" hidden>
+          <div class="section-heading"><h3 id="records-title">提交记录</h3><span class="count">最新在上 · 滚动查看</span></div>
+          <ol id="records" aria-label="提交记录" tabindex="0"></ol>
+        </section>
         <section id="preview-step" aria-labelledby="list-title" hidden>
           <div class="section-heading"><h3 id="list-title" tabindex="-1">待评清单</h3><span class="count" id="count"></span></div>
           <div id="empty" hidden><strong>当前学期没有待评条目</strong><p class="muted">已提交和非待评状态的条目不会列入清单。</p></div>
@@ -300,9 +312,9 @@
     const backwards = next === 'settings';
     step = next;
     $('settings-step').hidden = step !== 'settings';
-    $('preview-step').hidden = step === 'settings';
+    $('preview-step').hidden = step !== 'preview';
     $('progress-step').hidden = step !== 'progress';
-    $('list-title').textContent = step === 'progress' ? '提交记录' : '待评清单';
+    $('records-step').hidden = step !== 'progress';
     $('selection').hidden = step !== 'preview' || !plan?.items.length;
     lock(busy);
     const content = root.querySelector('.content');
@@ -324,6 +336,20 @@
     $('progress-bar').setAttribute('aria-valuenow', String(completed));
     $('progress-bar').setAttribute('aria-valuetext', `${completed} / ${total} 门已核实提交成功`);
     $('progress-fill').style.transform = `scaleX(${completed / total})`;
+  }
+
+  function startRecord(course) {
+    const row = document.createElement('li');
+    const name = paragraph(row, course.name, 'record-name');
+    name.title = course.name;
+    const detail = document.createElement('div');
+    detail.className = 'record-detail';
+    paragraph(detail, course.teacher, 'teacher').title = course.teacher;
+    const result = paragraph(detail, '正在核对…', 'result');
+    row.append(detail);
+    $('records').prepend(row);
+    $('records').scrollTo({ top: 0, behavior: 'instant' });
+    return result;
   }
 
   function lock(value) {
@@ -472,15 +498,15 @@
       teacher.textContent = item.course.teacher;
       heading.append(courseTitle, teacher);
       summary.append(heading);
-      item.result = document.createElement('span');
-      item.result.className = 'result';
-      summary.append(item.result);
+      const score = document.createElement('span');
+      score.className = 'result';
+      summary.append(score);
       const editor = document.createElement('fieldset');
       editor.className = 'editor';
       editor.setAttribute('aria-label', `${name}的评价内容`);
       details.append(summary, editor);
       li.append(selection, details);
-      const updateSummary = () => { item.result.textContent = item.selected ? (item.payload.overallRating ? `${item.payload.overallRating} 分` : '待填写') : '本次不评'; };
+      const updateSummary = () => { score.textContent = item.selected ? (item.payload.overallRating ? `${item.payload.overallRating} 分` : '待填写') : '本次不评'; };
       checkbox.addEventListener('change', () => {
         item.selected = checkbox.checked;
         updateSummary();
@@ -653,30 +679,33 @@
     $('stop').focus({ preventScroll: true });
     let completed = 0;
     let active = null;
+    let result = null;
     let sent = false;
     try {
       if (await currentSemester() !== batch.semester) fail('当前学期已变化，请重新预览。');
       for (const item of batch.items) {
         if (stopping) break;
         active = item;
+        result = startRecord(item.course);
+        $('current-course').textContent = `${item.course.name} · ${item.course.teacher}`;
+        $('progress-phase').textContent = '正在核对课程状态…';
         sent = false;
         if (localStorage.getItem('evaluationState') !== batch.draftRaw) fail('草稿已变化，请重新预览，避免覆盖新填写的内容。');
         const latest = (await courses(batch.semester)).find(c => c.id === item.course.id);
-        if (stopping) break;
+        if (stopping) { result.textContent = '未提交'; break; }
         if (!latest || !pending(latest) || latest.kcxz !== item.course.kcxz || latest.teacher !== item.course.teacher || latest.name !== item.course.name) fail('条目状态已变化，请重新预览。');
         if (localStorage.getItem('evaluationState') !== batch.draftRaw) fail('草稿已变化，请重新预览。');
-        item.result.textContent = '正在提交…';
-        $('current-course').textContent = `${item.course.name} · ${item.course.teacher}`;
+        result.textContent = '正在提交…';
         $('progress-phase').textContent = '正在提交评价，核实成功后计入进度。';
         $('status').textContent = `正在提交：${item.course.name} · ${item.course.teacher}（已完成 ${completed} / ${batch.items.length}）`;
         sent = true;
         await api('/saveEvaluation', { ...item.payload, pjsj: Math.max(0, Math.round((Date.now() - batch.reviewedAt) / 1000)) });
-        item.result.textContent = '正在核实提交结果…';
+        result.textContent = '正在核实…';
         $('progress-phase').textContent = '正在向服务器核实提交结果…';
         const saved = (await courses(batch.semester)).find(c => c.id === item.course.id);
         if (!saved?.completed || saved.status === '未评教' || !saved.status) fail('服务器尚未显示已提交，结果未确认。');
-        item.result.textContent = `已核实提交成功 · ${saved.status}`;
-        item.result.dataset.state = 'success';
+        result.textContent = '已核实提交成功';
+        result.dataset.state = 'success';
         completed++;
         updateProgress(completed, batch.items.length);
       }
@@ -688,9 +717,9 @@
       $('progress-step').dataset.state = 'error';
       $('progress-title').textContent = '提交已停止';
       $('progress-phase').textContent = '进度仅包含已核实成功的课程，请先刷新核实。';
-      if (active) {
-        active.result.textContent = sent ? '结果未确认，请先刷新核实' : '未提交';
-        active.result.dataset.state = 'error';
+      if (result) {
+        result.textContent = sent ? '结果未确认' : '未提交';
+        result.dataset.state = 'error';
       }
       $('status').textContent = `已停止：${completed} / ${batch.items.length} 个条目已核实提交成功。`;
       $('error').textContent = `${active ? `${active.course.name} · ${active.course.teacher}：` : ''}${error.message}${sent ? '\n请求可能已到达服务器；请先刷新核实，再决定是否重新预览。' : ''}`;
