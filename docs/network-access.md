@@ -29,4 +29,4 @@
 
 参考：[MDN Response.type](https://developer.mozilla.org/en-US/docs/Web/API/Response/type)、[MDN Mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Mixed_content)。跨站顶层 HTTP 链接可以导航，与页面内 fetch 不同。
 
-服务端代发请求只能看到服务器自身的网络，不能判断用户是否在校园网。若以后要做可靠静默检测，需要另有经过校内外验证、支持 HTTPS 和官网 CORS 的探测端点；本次没有发现或接入这样的端点。
+服务端代发请求只能看到服务器自身的网络，不能判断用户是否在校园网。普通网页若要读取探测端点的标头，需要有效 HTTPS 和允许官网的 CORS；但这不是全部方案：经校内外验证的 HTTPS 图片可通过加载事件提供有限信号，已安装用户脚本则可能借助扩展后台读取响应。后续研究已在独立扩展后台读到校外通知页跳转，详见 [校园网检测方案研究](campus-network-research.md)。油猴桥接和新方案的校内 / VPN 表现尚未验收。
