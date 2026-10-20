@@ -33,6 +33,19 @@ v0.3.2 使用「填写设置 → 核对预览 → 提交进度」分步界面，
 
 脚本可停用或删除；已经提交到学校的评价仍受学校系统的修改规则约束。
 
+## Greasy Fork 发布
+
+首次发布选择 **Unlisted user script**。在脚本的“管理”页启用同步，来源设为 `https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js`，选择手动同步；后续首次收到 webhook 后会转为 webhook 同步。
+
+仓库 Actions 需要配置：
+
+- Secret `GREASY_FORK_WEBHOOK_SECRET`：Greasy Fork 账号 webhook 页生成的密钥，不使用登录 Cookie。
+- Variable `GREASY_FORK_SCRIPT_ID`：已发布脚本的数字 ID。
+
+`main` 每次推送通过全部测试后，`greasyfork` 任务发送签名 webhook，由 Greasy Fork 从 GitHub 拉取本次已测试的确切提交。Pull Request 只运行测试。任务仅在返回回执包含配置的脚本 ID 且无同步失败时成功；HTTP 200 或 ping 成功均不等同于脚本已发布。
+
+同步保留首次发布的 Unlisted 类型与附加说明。需要发布脚本新版本时仍须增加 `@version`。官方机制见 [Greasy Fork API](https://greasyfork.org/en/help/api) 与 [webhook 配置说明](https://greasyfork.org/en/users/webhook-info)。
+
 ## 开发与验证
 
 ```sh
@@ -41,6 +54,7 @@ npx playwright install chromium
 npm run build
 npm run check
 npm run check:design
+node --test scripts/greasyfork-sync.test.mjs
 npm test
 ```
 
