@@ -45,6 +45,7 @@ test('installation destinations, keyboard controls and theme changes survive rel
   await expect(page.getByRole('link', { name: '前往油猴官网', exact: true })).toHaveAttribute('href', 'https://www.tampermonkey.net/');
   await expect(page.getByRole('link', { name: '从 Greasy Fork 安装', exact: true })).toHaveAttribute('href', 'https://greasyfork.org/zh-CN/scripts/601134');
   await expect(page.getByRole('link', { name: '从 GitHub 安装', exact: true })).toHaveAttribute('href', 'https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js');
+  await expect(page.getByRole('link', { name: '打开学生评教系统', exact: true })).toHaveAttribute('href', 'http://jxzljc.cqu.edu.cn/xspj/xspj/index/xspjindex');
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: '跳到正文' })).toBeFocused();
   const step = page.getByRole('button', { name: '01 填写设置' });
