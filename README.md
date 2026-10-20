@@ -4,9 +4,9 @@
 
 v0.3.3 使用「填写设置 → 核对预览 → 提交进度」分步界面，支持勾选课程、展开修改每项评分和评语。使用 CQU Design 1.1.0 主题，跟随系统深浅色，底部操作区保持可见。
 
-**[安装脚本](https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js)** · [查看源码](jxzljc.user.js)
+**[Greasy Fork 安装](https://greasyfork.org/zh-CN/scripts/601134)** · [GitHub 原始脚本](https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js) · [查看源码](jxzljc.user.js)
 
-脚本通过 `@updateURL` / `@downloadURL` 从本仓库 `main` 分支检查并下载新版；自动检查需在 Tampermonkey 中启用。手动粘贴安装的旧副本请先通过安装链接重新安装一次，以写入更新地址。
+GitHub 安装的脚本通过 `@updateURL` / `@downloadURL` 从本仓库 `main` 分支检查并下载新版；Greasy Fork 安装的脚本由 Greasy Fork 提供更新地址。自动检查需在 Tampermonkey 中启用。手动粘贴安装的旧副本请先通过安装链接重新安装一次，以写入更新地址。
 
 ## 使用
 
@@ -35,7 +35,7 @@ v0.3.3 使用「填写设置 → 核对预览 → 提交进度」分步界面，
 
 ## Greasy Fork 发布
 
-首次发布选择 **Unlisted user script**。在脚本的“管理”页启用同步，来源设为 `https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js`，选择手动同步；后续首次收到 webhook 后会转为 webhook 同步。
+[已发布脚本](https://greasyfork.org/zh-CN/scripts/601134)使用 **Unlisted user script** 类型与 MIT 许可证，数字 ID 为 `601134`。在脚本的“管理”页启用同步，来源设为 `https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js`，选择手动同步；后续首次收到 webhook 后会转为 webhook 同步。
 
 仓库 Actions 需要配置：
 
