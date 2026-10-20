@@ -1,7 +1,7 @@
 {
   "name": "cqu-jxzljc",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "重庆大学学生评教快速评价用户脚本",
   "type": "module",
   "scripts": {
