@@ -27,6 +27,7 @@ npm run build:website
 | Worker 名称 | `cqu-jxzljc`，必须与 `wrangler.jsonc` 相同 |
 | Git 仓库 | `cqu-moe/jxzljc` |
 | 生产分支 | `main` |
+| 官网域名 | `jxzljc.cqu.moe`，由 Wrangler Custom Domain 管理 DNS 和证书 |
 | 根目录 | `/`，保留根目录的锁文件和 `.design/` 本地主题包 |
 | Build command | 留空，Wrangler 的 `build.command` 负责构建 |
 | Deploy command | `npm run deploy:website` |

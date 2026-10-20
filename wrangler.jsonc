@@ -9,5 +9,11 @@
   },
   "assets": {
     "directory": "./website/dist"
-  }
+  },
+  "routes": [
+    {
+      "pattern": "jxzljc.cqu.moe",
+      "custom_domain": true
+    }
+  ]
 }
