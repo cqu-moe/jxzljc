@@ -5,3 +5,4 @@ playwright-report/
 .env*
 website/dist/
 website/.qa/
+.wrangler/

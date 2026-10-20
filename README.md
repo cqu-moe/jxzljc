@@ -58,7 +58,7 @@ npm run test:website
 npm run build:website
 ```
 
-产物在 `website/dist/`，可直接交给静态站点托管。官网的构建、素材来源和验证范围见 [官网维护说明](docs/website.md)。用户脚本的安装和运行不依赖官网。
+产物在 `website/dist/`，可直接交给静态站点托管。官网的 Cloudflare Git Connector 部署配置、构建、素材来源和验证范围见 [官网维护说明](docs/website.md)。用户脚本的安装和运行不依赖官网。
 
 ## 开发与验证
 

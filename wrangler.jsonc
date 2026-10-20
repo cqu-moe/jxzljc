@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cqu-jxzljc",
+  "compatibility_date": "2026-10-20",
+  "workers_dev": true,
+  "preview_urls": false,
+  "build": {
+    "command": "npm run build:website"
+  },
+  "assets": {
+    "directory": "./website/dist"
+  }
+}

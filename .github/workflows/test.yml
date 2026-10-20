@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
@@ -26,6 +26,7 @@ jobs:
       - run: npm test
       - run: npm run check:website
       - run: npm run test:website
+      - run: npx wrangler deploy --dry-run
 
   greasyfork:
     needs: browser
@@ -36,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: .nvmrc
       - name: Sync tested script to Greasy Fork
         run: node scripts/greasyfork-sync.mjs
         env:

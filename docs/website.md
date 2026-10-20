@@ -14,11 +14,46 @@ npm run test:website
 npm run build:website
 ```
 
-构建读取 `@cqu-moe/theme/styles.css`，复制到 `website/dist/theme.css`；从脚本元数据读取版本号填入页面，再复制本地素材。输出目录可部署到任意提供根路径的静态站点，当前未配置域名或生产部署。`dev:website` 使用 Python 3 标准库 HTTP 服务；测试独占 4187 端口，若被占用则报错，不复用其他项目的服务。
+构建读取 `@cqu-moe/theme/styles.css`，复制到 `website/dist/theme.css`；从脚本元数据读取版本号填入页面，再复制本地素材。输出目录为 `website/dist/`，由根目录 `wrangler.jsonc` 配置为 Workers Static Assets；不上传脚本源码或研究文档。`dev:website` 使用 Python 3 标准库 HTTP 服务；测试独占 4187 端口，若被占用则报错，不复用其他项目的服务。
+
+## GitHub 与 Cloudflare Git Connector
+
+官网和用户脚本保存在同一个 `cqu-moe/jxzljc` 仓库。Logo 可编辑源文件和完整素材包保存在 `cqu-moe/design`，官网使用同步后的品牌文件；Cloudflare 构建无需访问另一个仓库。
+
+使用 **Workers Builds 的 Git 集成**，连接 GitHub 仓库。设置如下：
+
+| 项目 | 值 |
+| --- | --- |
+| Worker 名称 | `cqu-jxzljc`，必须与 `wrangler.jsonc` 相同 |
+| Git 仓库 | `cqu-moe/jxzljc` |
+| 生产分支 | `main` |
+| 根目录 | `/`，保留根目录的锁文件和 `.design/` 本地主题包 |
+| Build command | 留空，Wrangler 的 `build.command` 负责构建 |
+| Deploy command | `npm run deploy:website` |
+| 非生产分支预览构建 | 关闭 |
+| Node.js | `.nvmrc` 指定 22，与 GitHub Actions 一致 |
+| 构建 / 运行时密钥 | 网站自身不需要；部署身份使用 Cloudflare 为 Builds 创建的 token |
+
+Cloudflare 自动安装锁文件中的依赖；固定版本的 Wrangler 会先执行 `npm run build:website`，再发布 `website/dist/`。这是一张静态页面，不使用 SPA fallback，未知路径返回 404。`npm run build` 仍仅同步用户脚本内嵌主题，不是官网构建命令。
+
+GitHub 仓库授权、分支和自动构建连接是 Cloudflare 端的配置，不能只靠提交 `wrangler.jsonc` 创建；首次连接后，推送生产分支会自动构建部署。GitHub Actions 保留脚本 / 官网检查及原有 Greasy Fork 同步，不增加 Cloudflare 部署密钥或部署 job。Cloudflare 构建不会等待独立 GitHub 检查，应在 PR 检查通过后再合并到 `main`。
+
+本地可复现检查：
+
+```sh
+npm ci
+npm run deploy:website -- --dry-run
+```
+
+Dry run 只验证构建和部署打包。生产验收还需核对 Git Connector 的提交号、构建日志与激活版本，并打开线上首页，检查样式、Logo、截图和安装链接。GitHub CI 通过不等于网站已经上线。
+
+参考：[Workers Builds 接入](https://developers.cloudflare.com/workers/ci-cd/builds/)、[构建配置](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)、[静态资源](https://developers.cloudflare.com/workers/static-assets/)。
 
 ## 设计与品牌来源
 
 按 CQU Design 的静态内容站 theme-only 路径接入 **theme 1.1.0**，不引入 React UI 包。字号、间距、圆角、阴影使用现有主题变量。依据用户 2026-10-20 的确认，参考 [QuickLogin 官网](https://quicklogin.cqu.moe/) 的布局与暖色表面层次，以赭金替换暖橙；页面内的 `design-exception` 仅覆盖官网的品牌色和营销标题字号，不修改共享 theme 或脚本主题。
+
+页面以实际脚本截图、四步安装、常见问题为主。首屏只保留一个安装动作，截图直接展示，不再套装饰卡片；版本放在页脚。安装区和常见问题在桌面采用左侧标题、右侧内容的布局，手机恢复单列。品牌色保留在标题、链接、主按钮和步骤编号，不增加英文装饰标题、滚动入场或重复的卖点区。
 
 Logo 的唯一来源是 `cqu-moe/design` 的 `assets/brand/path-family/jxzljc/`；可编辑路径与配色在 `source/marks.json`。原稿、提取记录与透明素材保存在 design 中。页面显示标准色 / 深底彩色双版本，favicon 也使用彩色；官网没有手动主题切换，因此图片与页面均跟随同一个系统偏好。
 
