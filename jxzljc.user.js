@@ -1,7 +1,9 @@
 // ==UserScript==
 // @name         重庆大学快速评教
 // @namespace    https://github.com/cqu-moe/jxzljc
-// @version      0.3.1
+// @version      0.3.2
+// @updateURL    https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js
+// @downloadURL  https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js
 // @description  预览确认后批量评价当前学期待评条目，保留已有草稿。
 // @match        *://jxzljc.cqu.edu.cn/xspj/xspj/index/xspjindex*
 // @run-at       document-idle
