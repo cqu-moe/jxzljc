@@ -2,9 +2,11 @@
 
 适用于[重庆大学学生评教系统](http://jxzljc.cqu.edu.cn/)的 Tampermonkey 用户脚本。统一设置满意度、综合评分和评语，核对预览后逐条提交当前学期待评条目。
 
-v0.3.1 使用「填写设置 → 核对预览 → 提交进度」分步界面，支持勾选课程、展开修改每项评分和评语。使用 CQU Design 1.1.0 主题，跟随系统深浅色，底部操作区保持可见。
+v0.3.2 使用「填写设置 → 核对预览 → 提交进度」分步界面，支持勾选课程、展开修改每项评分和评语。使用 CQU Design 1.1.0 主题，跟随系统深浅色，底部操作区保持可见。
 
 **[安装脚本](https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js)** · [查看源码](jxzljc.user.js)
+
+脚本通过 `@updateURL` / `@downloadURL` 从本仓库 `main` 分支检查并下载新版；自动检查需在 Tampermonkey 中启用。手动粘贴安装的旧副本请先通过安装链接重新安装一次，以写入更新地址。
 
 ## 使用
 
