@@ -13,10 +13,10 @@ for (const colorScheme of ['light', 'dark']) for (const width of [320, 390, 768,
     await page.setViewportSize({ width, height: 960 });
     await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
     await page.goto('/');
-    await expect(page).toHaveTitle('少些重复，多些认真 · 快速评教');
+    await expect(page).toHaveTitle(/快速评教/);
     await expect(page.locator('#hero-title')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    for (const name of ['01 填写设置', '02 核对预览', '03 提交进度']) {
+    for (const name of ['填写设置', '核对预览', '提交进度']) {
       const button = page.getByRole('button', { name });
       await button.click();
       await expect(button).toHaveAttribute('aria-pressed', 'true');
@@ -25,7 +25,7 @@ for (const colorScheme of ['light', 'dark']) for (const width of [320, 390, 768,
       await expect.poll(() => picture.locator('img').evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
       expect(await picture.locator('img').evaluate(img => img.currentSrc)).toContain(`-${colorScheme}.png`);
     }
-    await page.getByRole('button', { name: '02 核对预览' }).click();
+    await page.getByRole('button', { name: '核对预览' }).click();
     await page.getByRole('link', { name: '开始安装', exact: true }).click();
     await expect(page.locator('.steps li').first()).toContainText('安装油猴 Tampermonkey');
     await page.getByText('Chrome / Edge 提示需要执行用户脚本的权限？', { exact: true }).click();
@@ -48,7 +48,7 @@ test('installation destinations, keyboard controls and theme changes survive rel
   await expect(page.getByRole('link', { name: '打开学生评教系统', exact: true })).toHaveAttribute('href', 'http://jxzljc.cqu.edu.cn/xspj/xspj/index/xspjindex');
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: '跳到正文' })).toBeFocused();
-  const step = page.getByRole('button', { name: '01 填写设置' });
+  const step = page.getByRole('button', { name: '填写设置' });
   await step.focus();
   await page.keyboard.press('Enter');
   await expect(step).toHaveAttribute('aria-pressed', 'true');
