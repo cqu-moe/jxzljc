@@ -16,6 +16,10 @@
 
 满意度和逐项指标仍使用原生 select。支持 `appearance: base-select` 的浏览器通过 `::picker(select)` 复用主题菜单颜色、圆角、阴影与选中标记；保留原生表单验证、焦点及键盘操作。不支持时回退为原生选择菜单，未增加运行时依赖。参考 [MDN 的可定制 select](https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Customizable_select)。
 
+## 官网
+
+独立官网沿用 theme-only 接入，按用户确认使用赭金品牌色与营销标题尺度；局部覆盖和素材来源见 [官网维护说明](website.md)。这些覆盖只作用于官网，不改变用户脚本内嵌的共享主题。
+
 ## 自动检查
 
 ```sh

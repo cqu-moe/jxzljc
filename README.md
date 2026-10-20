@@ -46,6 +46,20 @@ GitHub 安装的脚本通过 `@updateURL` / `@downloadURL` 从本仓库 `main` �
 
 同步保留首次发布的 Unlisted 类型与附加说明。需要发布脚本新版本时仍须增加 `@version`。官方机制见 [Greasy Fork API](https://greasyfork.org/en/help/api) 与 [webhook 配置说明](https://greasyfork.org/en/users/webhook-info)。
 
+## 官网
+
+`website/` 是独立的静态介绍与安装页，使用 CQU Design theme 1.1.0、快速评教赭金品牌色，跟随系统深浅主题。安装指引从 Tampermonkey 开始，同时提供 Greasy Fork 和 GitHub 两个来源。
+
+```sh
+npm run dev:website
+# http://127.0.0.1:4187
+npm run check:website
+npm run test:website
+npm run build:website
+```
+
+产物在 `website/dist/`，可直接交给静态站点托管。官网的 Cloudflare Git Connector 部署配置、构建、素材来源和验证范围见 [官网维护说明](docs/website.md)。用户脚本的安装和运行不依赖官网。
+
 ## 开发与验证
 
 ```sh

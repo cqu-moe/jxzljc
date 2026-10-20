@@ -9,10 +9,17 @@
     "check": "node --check jxzljc.user.js",
     "test": "playwright test",
     "build": "node scripts/design.mjs --write",
-    "check:design": "node scripts/design.mjs"
+    "check:design": "node scripts/design.mjs",
+    "build:website": "node scripts/website.mjs",
+    "check:website": "node scripts/website.mjs --check",
+    "dev:website": "npm run build:website && python3 -m http.server 4187 --bind 127.0.0.1 --directory website/dist",
+    "test:website": "playwright test --config playwright.website.config.js",
+    "capture:website": "node scripts/capture-website.mjs",
+    "deploy:website": "npm run check:design && npm run check:website && wrangler deploy"
   },
   "devDependencies": {
+    "@cqu-moe/theme": "file:.design/cqu-moe-theme-1.1.0.tgz",
     "@playwright/test": "1.64.1",
-    "@cqu-moe/theme": "file:.design/cqu-moe-theme-1.1.0.tgz"
+    "wrangler": "4.151.2"
   }
 }
