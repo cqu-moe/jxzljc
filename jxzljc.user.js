@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         重庆大学快速评教
 // @namespace    https://github.com/cqu-moe/jxzljc
-// @version      0.3.0
+// @version      0.3.1
 // @description  预览确认后批量评价当前学期待评条目，保留已有草稿。
 // @match        *://jxzljc.cqu.edu.cn/xspj/xspj/index/xspjindex*
 // @run-at       document-idle
@@ -230,14 +230,12 @@
       @keyframes sweep { from { transform: translateX(-100%); opacity: 0.1; } 50% { opacity: 0.35; } to { transform: translateX(100%); opacity: 0.1; } }
       @keyframes pulse { 50% { opacity: 0.35; } }
       @keyframes record-enter { from { transform: translateY(-8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-      footer { display: grid; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border); background: var(--surface); }
+      footer { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border); background: var(--surface); }
       .feedback { display: grid; gap: var(--space-3); max-height: min(10rem, 25dvh); overflow-y: auto; }
       #status, #error { font-size: var(--text-sm); white-space: pre-wrap; overflow-wrap: anywhere; }
       #error { color: var(--destructive); border-left: 2px solid var(--destructive); padding-left: var(--space-3); }
       #error:empty { display: none; }
       .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
-      #back { margin-right: auto; }
-      .notice { font-size: var(--text-xs); color: var(--muted-foreground); }
       [hidden] { display: none !important; }
       @media (max-width: 540px) {
         dialog { width: calc(100vw - var(--space-4)); height: min(48rem, calc(100dvh - var(--space-4))); max-height: calc(100dvh - var(--space-4)); }
@@ -248,10 +246,10 @@
         .course-name { display: grid; gap: 0; }
         .teacher { max-width: none; }
         .card { padding: var(--space-4); }
-        footer { padding: var(--space-3) var(--space-4) max(var(--space-3), env(safe-area-inset-bottom)); }
+        footer { grid-template-columns: minmax(0, 1fr); padding: var(--space-3) var(--space-4) max(var(--space-3), env(safe-area-inset-bottom)); }
         #launch { right: var(--space-4); bottom: max(var(--space-4), env(safe-area-inset-bottom)); }
       }
-      @media (max-height: 540px) { .eyebrow, header .description, .notice { display: none; } header, footer { padding: var(--space-2) var(--space-4); } .actions { display: flex; } }
+      @media (max-height: 540px) { .eyebrow, header .description { display: none; } header, footer { padding: var(--space-2) var(--space-4); } .actions { display: flex; } }
     </style>
     <button id="launch" class="primary">快速评教</button>
     <dialog aria-labelledby="title" aria-describedby="dialog-description">
@@ -303,7 +301,6 @@
           <button id="stop" class="primary" hidden>停止后续提交</button>
           <button id="refresh" class="primary" hidden>刷新课程列表</button>
         </div>
-        <p class="notice">仅处理当前学期未提交的条目。一次只在一个标签页运行。</p>
       </footer>
     </dialog>`;
   document.body.append(host);
