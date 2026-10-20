@@ -38,16 +38,19 @@ function run({ status = 200, result = { updated_scripts: ['https://greasyfork.or
   } finally { rmSync(dir, { recursive: true, force: true }); }
 }
 
-test('sends a signed notification for the tested commit and requires the matching script receipt', () => {
-  const result = run();
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /123.*abc123/);
-});
+for (const url of ['https://greasyfork.org/en/scripts/123-example', 'https://api.greasyfork.org/zh-CN/scripts/123-example']) {
+  test(`accepts the matching signed synchronization receipt from ${new URL(url).hostname}`, () => {
+    const result = run({ result: { updated_scripts: [url], updated_failed: [] } });
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /123.*abc123/);
+  });
+}
 
 for (const [name, options, message] of [
   ['HTTP failure', { status: 503 }, /HTTP 503/],
   ['provider failure', { result: { updated_scripts: [], updated_failed: ['https://greasyfork.org/en/scripts/123-example'] } }, /did not confirm/],
   ['no matching script', { result: { updated_scripts: ['https://greasyfork.org/en/scripts/1234-other'], updated_failed: [] } }, /did not confirm/],
+  ['untrusted host', { result: { updated_scripts: ['https://greasyfork.org.example/en/scripts/123-example'], updated_failed: [] } }, /did not confirm/],
   ['missing secret', { env: { GREASY_FORK_WEBHOOK_SECRET: '' } }, /must be configured/],
   ['pull request', { env: { GITHUB_EVENT_NAME: 'pull_request' } }, /push to main/],
   ['other branch', { env: { GITHUB_REF: 'refs/heads/feature' } }, /push to main/],

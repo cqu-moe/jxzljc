@@ -37,7 +37,7 @@ const result = await response.json();
 if (!Array.isArray(result.updated_failed) || result.updated_failed.length ||
     !Array.isArray(result.updated_scripts) || !result.updated_scripts.some(value => {
       const url = new URL(value);
-      return url.hostname === 'greasyfork.org' && url.pathname.match(/\/scripts\/(\d+)(?:-|\/|$)/)?.[1] === scriptId;
+      return ['greasyfork.org', 'api.greasyfork.org'].includes(url.hostname) && url.pathname.match(/\/scripts\/(\d+)(?:-|\/|$)/)?.[1] === scriptId;
     })) {
   throw new Error('Greasy Fork did not confirm synchronization of the configured script.');
 }
