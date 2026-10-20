@@ -2,11 +2,11 @@
 
 适用于[重庆大学学生评教系统](http://jxzljc.cqu.edu.cn/)的 Tampermonkey 用户脚本。统一设置满意度、综合评分和评语，核对预览后逐条提交当前学期待评条目。
 
-v0.3.2 使用「填写设置 → 核对预览 → 提交进度」分步界面，支持勾选课程、展开修改每项评分和评语。使用 CQU Design 1.1.0 主题，跟随系统深浅色，底部操作区保持可见。
+v0.3.3 使用「填写设置 → 核对预览 → 提交进度」分步界面，支持勾选课程、展开修改每项评分和评语。使用 CQU Design 1.1.0 主题，跟随系统深浅色，底部操作区保持可见。
 
-**[安装脚本](https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js)** · [查看源码](jxzljc.user.js)
+**[Greasy Fork 安装](https://greasyfork.org/zh-CN/scripts/601134)** · [GitHub 原始脚本](https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js) · [查看源码](jxzljc.user.js)
 
-脚本通过 `@updateURL` / `@downloadURL` 从本仓库 `main` 分支检查并下载新版；自动检查需在 Tampermonkey 中启用。手动粘贴安装的旧副本请先通过安装链接重新安装一次，以写入更新地址。
+GitHub 安装的脚本通过 `@updateURL` / `@downloadURL` 从本仓库 `main` 分支检查并下载新版；Greasy Fork 安装的脚本由 Greasy Fork 提供更新地址。自动检查需在 Tampermonkey 中启用。手动粘贴安装的旧副本请先通过安装链接重新安装一次，以写入更新地址。
 
 ## 使用
 
@@ -33,6 +33,19 @@ v0.3.2 使用「填写设置 → 核对预览 → 提交进度」分步界面，
 
 脚本可停用或删除；已经提交到学校的评价仍受学校系统的修改规则约束。
 
+## Greasy Fork 发布
+
+[已发布脚本](https://greasyfork.org/zh-CN/scripts/601134)使用 **Unlisted user script** 类型与 MIT 许可证，数字 ID 为 `601134`。在脚本的“管理”页启用同步，来源设为 `https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js`，选择手动同步；后续首次收到 webhook 后会转为 webhook 同步。
+
+仓库 Actions 需要配置：
+
+- Secret `GREASY_FORK_WEBHOOK_SECRET`：Greasy Fork 账号 webhook 页生成的密钥，不使用登录 Cookie。
+- Variable `GREASY_FORK_SCRIPT_ID`：已发布脚本的数字 ID。
+
+`main` 每次推送通过全部测试后，`greasyfork` 任务发送签名 webhook，由 Greasy Fork 从 GitHub 拉取本次已测试的确切提交。Pull Request 只运行测试。任务仅在返回回执包含配置的脚本 ID 且无同步失败时成功；HTTP 200 或 ping 成功均不等同于脚本已发布。
+
+同步保留首次发布的 Unlisted 类型与附加说明。需要发布脚本新版本时仍须增加 `@version`。官方机制见 [Greasy Fork API](https://greasyfork.org/en/help/api) 与 [webhook 配置说明](https://greasyfork.org/en/users/webhook-info)。
+
 ## 开发与验证
 
 ```sh
@@ -41,6 +54,7 @@ npx playwright install chromium
 npm run build
 npm run check
 npm run check:design
+node --test scripts/greasyfork-sync.test.mjs
 npm test
 ```
 
@@ -51,3 +65,7 @@ npm test
 2026-10-19 曾对 v0.2.0 在 ego lite 的已登录真实页面检查入口、设置和只读预览，识别当前页面全部待评条目且未修改本地草稿。v0.3.0 的课程选择与编辑通过受控接口验证，未在真实页面重复验收。没有执行真实评价提交或 Tampermonkey 扩展安装后的完整执行链路；浏览器注入成功和接口模拟测试不代表真实提交验收。
 
 范围与术语见 [方案](docs/quick-evaluation-plan.md)和[术语表](GLOSSARY.md)。
+
+## 许可证
+
+[MIT](LICENSE)

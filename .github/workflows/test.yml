@@ -22,4 +22,21 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run check
       - run: npm run check:design
+      - run: node --test scripts/greasyfork-sync.test.mjs
       - run: npm test
+
+  greasyfork:
+    needs: browser
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Sync tested script to Greasy Fork
+        run: node scripts/greasyfork-sync.mjs
+        env:
+          GREASY_FORK_WEBHOOK_SECRET: ${{ secrets.GREASY_FORK_WEBHOOK_SECRET }}
+          GREASY_FORK_SCRIPT_ID: ${{ vars.GREASY_FORK_SCRIPT_ID }}
