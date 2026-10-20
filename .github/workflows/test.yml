@@ -24,6 +24,8 @@ jobs:
       - run: npm run check:design
       - run: node --test scripts/greasyfork-sync.test.mjs
       - run: npm test
+      - run: npm run check:website
+      - run: npm run test:website
 
   greasyfork:
     needs: browser

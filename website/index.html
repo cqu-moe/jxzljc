@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>少些重复，多些认真 · 快速评教</title>
+  <meta name="description" content="为重庆大学学生评教减少重复填写。先安装油猴，再安装快速评教脚本；统一填写、逐门核对，确认后依次提交。">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#faf9f6">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c1914">
+  <meta property="og:title" content="少些重复，多些认真 · 快速评教">
+  <meta property="og:description" content="统一填写、逐门核对，确认后依次提交。一个为重庆大学同学做的开源小工具。">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="/brand/favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/brand/icon-192.png">
+  <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+  <header class="site-header wrap">
+    <a class="brand" href="/" aria-label="快速评教首页">
+      <picture><source srcset="/brand/logo-dark.svg" media="(prefers-color-scheme: dark)"><img src="/brand/logo.svg" width="32" height="32" alt=""></picture>
+      <span>快速评教</span><span class="version">v{{version}}</span>
+    </a>
+    <nav aria-label="主导航">
+      <a href="#install">安装与使用</a><a href="#faq">常见问题</a><a href="https://github.com/cqu-moe/jxzljc" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </nav>
+  </header>
+  <main id="main" class="wrap" tabindex="-1">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="brand-dot" aria-hidden="true"></span>为校园日常，省去一点重复</p>
+        <h1 id="hero-title">少些重复，<br><span>多些认真。</span></h1>
+        <p class="hero-description">把重复的填写交给工具，<br>把每一门课的评价留给你。<br>统一填写、逐门核对，确认后依次提交。</p>
+        <div class="hero-actions"><a class="button" href="#install">开始安装</a><a class="text-link" href="#features">了解它能做什么</a></div>
+        <p class="micro">重庆大学学生评教 · Tampermonkey 用户脚本 · 免费开源</p>
+      </div>
+      <figure class="product-scene" id="preview">
+        <div class="scene-label">JXZLJC / COURSE EVALUATION</div>
+        <div class="demo-switch" role="group" aria-label="切换脚本界面截图" hidden>
+          <button type="button" data-step="settings" aria-pressed="false" aria-controls="demo-settings">01 填写设置</button>
+          <button type="button" data-step="preview" aria-pressed="true" aria-controls="demo-preview">02 核对预览</button>
+          <button type="button" data-step="progress" aria-pressed="false" aria-controls="demo-progress">03 提交进度</button>
+        </div>
+        <div class="demo-window">
+          <picture id="demo-settings" class="demo-pane" hidden><source srcset="/demo/settings-dark.png" media="(prefers-color-scheme: dark)"><img src="/demo/settings-light.png" width="576" height="608" alt="填写设置界面：选择满意度档位、综合评分，填写统一评语。" loading="lazy"></picture>
+          <picture id="demo-preview" class="demo-pane"><source srcset="/demo/preview-dark.png" media="(prefers-color-scheme: dark)"><img src="/demo/preview-light.png" width="576" height="608" alt="核对预览界面：勾选待评课程，逐门查看并修改评分和评语。" fetchpriority="high"></picture>
+          <picture id="demo-progress" class="demo-pane" hidden><source srcset="/demo/progress-dark.png" media="(prefers-color-scheme: dark)"><img src="/demo/progress-light.png" width="576" height="608" alt="提交进度界面：显示已经核实的完成数量与逐条提交记录。" loading="lazy"></picture>
+        </div>
+        <figcaption><span class="brand-dot" aria-hidden="true"></span>脚本实际界面 · 合成数据截图，不会提交评价</figcaption>
+      </figure>
+    </section>
+    <div class="intro-line"><strong>一个小工具，少一点重复填写。</strong><span>保留已有草稿</span><span>逐门核对与修改</span><span>确认后才提交</span></div>
+    <section class="section" id="features" aria-labelledby="features-title">
+      <div class="section-head"><div><p class="eyebrow">LESS REPETITION, MORE CARE</p><h2 id="features-title">填写可以更快，<br>评价依然由你。</h2></div><p>相同的内容只填一次，不同的感受逐门表达。从设置到提交，每一步都有机会看清楚。</p></div>
+      <div class="feature-list">
+        <article class="feature-row"><span class="index">01 /</span><h3>统一填写，保留已有内容</h3><p>选择满意度、综合评分和评语，为空白内容统一填写。已有草稿优先保留，也不会被脚本改写或删除。</p></article>
+        <article class="feature-row"><span class="index">02 /</span><h3>每一门课，单独确认</h3><p>在待评清单里选择课程，展开查看指标评分和评语，按你的实际感受调整。核对无误，再开始提交。</p></article>
+        <article class="feature-row"><span class="index">03 /</span><h3>逐条提交，看清进度</h3><p>每提交一条，都重新查询学校系统确认结果。遇到失败或结果不明确会停止；你也可以随时停止后续提交。</p></article>
+      </div>
+    </section>
+    <section class="section installation" id="install" aria-labelledby="install-title">
+      <div class="section-head"><div><p class="eyebrow">START HERE</p><h2 id="install-title">从安装油猴开始。</h2></div><p>第一次用用户脚本也没关系。按下面四步操作；已经装好油猴，可以直接从第二步开始。</p></div>
+      <ol class="steps">
+        <li class="step"><span class="step-number" aria-hidden="true">01</span><div><h3>安装油猴 Tampermonkey</h3><p>用电脑浏览器打开 Tampermonkey 官网，选择你正在使用的浏览器，进入对应的扩展商店。点击“添加”或“获取”，确认安装，然后在浏览器的扩展菜单里找到油猴并保持启用。</p><div class="step-actions"><a class="button secondary" href="https://www.tampermonkey.net/" target="_blank" rel="noopener noreferrer">前往油猴官网</a></div><details class="permission-note"><summary>Chrome / Edge 提示需要执行用户脚本的权限？</summary><div><p>打开浏览器的扩展管理页面，找到 Tampermonkey。在支持的浏览器版本中，打开详情里的“允许用户脚本”；如果没有这个选项，按油猴官方说明启用“开发者模式”。完成后刷新评教页面。</p><a class="text-link" href="https://www.tampermonkey.net/faq.php?locale=zh&amp;q=Q209" target="_blank" rel="noopener noreferrer">查看油猴官方图文说明</a></div></details></div></li>
+        <li class="step"><span class="step-number" aria-hidden="true">02</span><div><h3>安装「重庆大学快速评教」脚本</h3><p>打开 Greasy Fork 页面，点击“安装此脚本”，再在油猴弹出的确认页点击“安装”。也可以用 GitHub 安装链接，直接打开油猴确认页。两种来源选一种即可。</p><div class="step-actions"><a class="button" href="https://greasyfork.org/zh-CN/scripts/601134" target="_blank" rel="noopener noreferrer">从 Greasy Fork 安装</a><a class="button secondary" href="https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js" target="_blank" rel="noopener noreferrer">从 GitHub 安装</a></div><p class="micro">安装后，在油猴“管理面板”里确认「重庆大学快速评教」已启用。如果打开的是代码文本，先检查油猴是否安装并启用。</p></div></li>
+        <li class="step"><span class="step-number" aria-hidden="true">03</span><div><h3>打开学校评教系统</h3><p>正常登录学校的学生评教系统，进入学生评教页面。右下角出现「快速评教」按钮，说明脚本已经运行。若刚安装完，刷新一次页面；已有单门评价窗口时，先关闭它以保存草稿。</p><div class="step-actions"><a class="button secondary" href="http://jxzljc.cqu.edu.cn/" target="_blank" rel="noopener noreferrer">打开学生评教系统</a></div><p class="micro">账号登录只在学校系统完成，这个官网不需要你的账号或密码。</p></div></li>
+        <li class="step"><span class="step-number" aria-hidden="true">04</span><div><h3>填写设置，核对后再提交</h3><p>点击「快速评教」，选择满意度和综合评分，按需填写评语。点击“下一步”，勾选课程并逐门核对；需要调整时展开课程，修改该门课的评分或评语。确认无误后，点击脚本中的“开始刷课”提交。</p><p class="step-note">请按真实感受评价，一次只在一个标签页运行。停止操作会等当前请求核实后，再停止后续提交。</p></div></li>
+      </ol>
+    </section>
+    <section class="section faq-section" id="faq" aria-labelledby="faq-title">
+      <div class="section-head"><div><p class="eyebrow">GOOD TO KNOW</p><h2 id="faq-title">使用前，你可能想问。</h2></div><p>更详细的使用说明和实现都在 GitHub 上。遇到问题，也可以在那里反馈。</p></div>
+      <div class="faq">
+        <details><summary>它会自动给所有课程打满分吗？</summary><p>不会。脚本不预选评价内容，满意度和综合评分都由你选择。统一设置只补空白；已有草稿会保留，预览时也可以逐门修改。</p></details>
+        <details><summary>需要把账号或密码交给这个工具吗？</summary><p>不需要。脚本使用你在学校评教系统的当前登录状态，只访问学校站点的同源接口，不收集账号，也不向第三方上传评价。</p></details>
+        <details><summary>已经写过的草稿会被覆盖吗？</summary><p>生成预览时优先保留已有内容，仅补空白。你在预览里修改的内容只用于本次提交，不会改写学校的本地草稿。若预览后学校草稿发生变化，旧的提交计划会停止使用。</p></details>
+        <details><summary>没有出现「快速评教」按钮怎么办？</summary><p>先检查油猴和脚本都已启用，再按第一步的说明检查用户脚本执行权限。登录并进入学生评教页面后刷新一次。脚本只在匹配的学生评教页面运行，不会出现在学校的所有网页上。</p></details>
+        <details><summary>支持哪些课程？可以在手机上用吗？</summary><p>脚本只处理当前学期尚未评教的条目。目前支持已核实的 A–E 五档选择题，检查过理论课和实验课；遇到未知题型会停止。建议使用电脑浏览器。界面有小屏布局，但手机浏览器的扩展支持及真实手机使用尚未完整验证。</p></details>
+        <details><summary>提交失败、停止或刷新后，会发生什么？</summary><p>失败或结果不明确时会停止，不会自动重试。停止后续提交会等待当前请求核实，再停止下一条。刷新不会继续提交，也不会保留本次临时设置；请先在学校页面核实结果，再决定是否重新预览。已经提交的评价仍受学校系统的修改规则约束。</p></details>
+        <details><summary>这是学校官方提供的工具吗？</summary><p>这是 CQU Moe 提供的开源辅助工具，并非学校官方产品。评价内容由你确认，最终结果以学校评教系统为准。官网展示的是示例数据，不包含真实课程或教师资料。</p></details>
+        <details><summary>脚本怎么更新，遇到问题去哪里反馈？</summary><p>在油猴中启用更新检查即可。Greasy Fork 安装由 Greasy Fork 提供更新，GitHub 安装从仓库 main 分支更新；无需同时安装两份。</p><a class="text-link" href="https://github.com/cqu-moe/jxzljc/issues" target="_blank" rel="noopener noreferrer">到 GitHub 反馈问题</a><p>请提供浏览器版本和脱敏后的现象，不要附上账号、课程或教师资料、会话凭据。</p></details>
+      </div>
+    </section>
+    <section class="closing"><div><h2>把时间留给真实的反馈。</h2><p>安装一个小工具，从下一次评教开始。</p></div><a class="button" href="#install">查看安装步骤</a></section>
+  </main>
+  <footer class="site-footer wrap"><div><a class="footer-brand" href="https://cqu.moe/" target="_blank" rel="noopener noreferrer">CQU Moe</a><span>为校园日常，做一点小事。</span></div><nav aria-label="页脚导航"><a href="https://github.com/cqu-moe/jxzljc" target="_blank" rel="noopener noreferrer">源码与说明</a><a href="https://github.com/cqu-moe/jxzljc/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT 许可证</a><a href="#install">安装脚本</a></nav></footer>
+</body>
+</html>
