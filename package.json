@@ -2,7 +2,7 @@
   "name": "cqu-jxzljc",
   "private": true,
   "license": "MIT",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "重庆大学学生评教快速评价用户脚本",
   "type": "module",
   "scripts": {
@@ -18,7 +18,7 @@
     "deploy:website": "npm run check:design && npm run check:website && wrangler deploy"
   },
   "devDependencies": {
-    "@cqu-moe/theme": "file:.design/cqu-moe-theme-1.1.0.tgz",
+    "@cqu-moe/theme": "file:.design/cqu-moe-theme-1.2.0.tgz",
     "@playwright/test": "1.64.1",
     "wrangler": "4.151.2"
   }

@@ -54,11 +54,11 @@ Dry run 只验证构建和部署打包。生产验收还需核对 Git Connector 
 
 ## 设计与品牌来源
 
-按 CQU Design 的静态内容站 theme-only 路径接入 **theme 1.1.0**，不引入 React UI 包。字号、间距、圆角、阴影使用现有主题变量。依据用户 2026-10-20 的确认，参考 [QuickLogin 官网](https://quicklogin.cqu.moe/) 的布局与暖色表面层次，以赭金替换暖橙；页面内的 `design-exception` 仅覆盖官网的品牌色和营销标题字号，不修改共享 theme 或脚本主题。
+按 CQU Design 的静态内容站 theme-only 路径接入 **theme 1.2.0**，不引入 React UI 包。来源为 [design v1.2.0](https://github.com/cqu-moe/design/releases/tag/v1.2.0)，使用正式 tarball 并核对发行 SHA256SUMS，保留 npm 锁文件。统一蓝色决策取代先前的赭金与暖中性色例外；网页直接引用共享 `--brand-ink`、`--brand-soft`。只有 `.brand-action` 局部将主按钮映射到 `--brand-solid` / `--brand-on-solid`，根级 primary 和工作界面保持黑白。页面内的 `design-exception` 只用于营销标题字号，检查器对整份 CSS 校验颜色，不再豁免品牌色值。
 
-页面以实际脚本截图、四步安装、常见问题为主。首屏只保留一个安装动作，截图直接展示，不再套装饰卡片；版本放在页脚。安装区和常见问题在桌面采用左侧标题、右侧内容的布局，手机恢复单列。品牌色保留在标题、链接、主按钮和步骤编号，不增加英文装饰标题、滚动入场或重复的卖点区。
+页面以实际脚本截图、四步安装、使用边界和常见问题为主。首屏只有一个主要安装动作，明确电脑浏览器、Tampermonkey、校园网和非学校官方身份；截图外围仅一层浅品牌衬底，内部保留实际中性窗口，文字注明合成数据且点击只切换截图。安装区与使用边界采用左侧标题、右侧正文的布局，小屏恢复单列。评分由用户决定、草稿保留、确认后提交及隐私边界放在正文中，不只藏在 FAQ。无滚动入场、远程字体、自动轮播或新增运行时依赖；首屏截图按系统主题预加载。
 
-Logo 的唯一来源是 `cqu-moe/design` 的 `assets/brand/path-family/jxzljc/`；可编辑路径与配色在 `source/marks.json`。原稿、提取记录与透明素材保存在 design 中。页面显示标准色 / 深底彩色双版本，favicon 也使用彩色；官网没有手动主题切换，因此图片与页面均跟随同一个系统偏好。
+Logo 的唯一来源是 `cqu-moe/design` 的 `v1.2.0` tag 下 `assets/brand/path-family/jxzljc/`；`source/marks.json` 保留已批准的气泡/勾选轮廓，配色来自共享主题 token。原稿、提取记录与透明素材保存在 design 中。页面显示蓝色浅深双版本，SVG favicon 自适应系统主题，ICO 与应用图标同步更新。官网没有手动主题切换，因此图片与页面均跟随同一个系统偏好。
 
 在 design 仓库运行以下命令同步并校验，禁止在消费目录手工改路径或配色：
 
@@ -84,7 +84,18 @@ npm run build:website
 
 安装权限说明参考 [Tampermonkey 官方 FAQ](https://www.tampermonkey.net/faq.php?locale=zh&q=Q209)。Greasy Fork 链接为用户提供的 [601134](https://greasyfork.org/zh-CN/scripts/601134)，GitHub 安装链接读取仓库 main 的原始脚本。
 
-## 2026-10-20 本地验证
+## 2026-10-21 · issue #9 本地验证
+
+- 1.2.0 正式 theme tarball SHA-256 与发行清单一致；design `v1.2.0` 的品牌同步工具与资源已逐字节核对，13 个消费素材通过 `brand:check`。
+- `npm run build`、`check`、`check:design`、`build:website`、`check:website` 通过；30 项脚本交互、11 项官网交互及 9 项同步协议测试通过。新增检查约束官网实际蓝色和脚本黑白主按钮；正文、强调文字、按钮及截图衬底上的说明和选中标签均至少 4.5:1。
+- 官网和脚本均覆盖 320 / 390 / 768 / 1440px × 浅深主题，检查无溢出、断图、44px 操作区域、键盘焦点和主题刷新；脚本输入至少 16px。官网无 JavaScript 时安装与问答仍可用。
+- 重新生成六张合成演示图，`source.json` 匹配 v0.3.4 脚本哈希。除版本与生成主题区外，脚本源码与升级前完全一致，草稿、核对、返回与失败恢复由原交互测试覆盖。
+- 在浏览器实看[桌面浅色首屏](screenshots/website-light.png)、[手机深色首屏](screenshots/website-dark-mobile.png)和完整长页；实看正式 Logo 的 16 / 24 / 32px、应用图标和 SVG / ICO favicon。16px 层叠细节较少，轮廓保留可辨认性。
+- `npm run deploy:website -- --dry-run` 通过，仅构建与打包，没有执行部署。远端 CI 见对应 PR；生产 Git Connector 构建、线上读回、Greasy Fork 发布与真实安装不由本地检查证明。
+
+未执行真实学校提交、Tampermonkey 安装完整链路、真实手机、Safari / Firefox 或屏幕阅读器验收。
+
+## 2026-10-20 本地验证（升级前）
 
 - 官网 Chromium **11 项通过**：320 / 390 / 768 / 1440px × 浅深主题，无横向溢出、资源错误；截图切换、安装锚点、FAQ、44px 操作区域、键盘焦点、系统主题变化及刷新、无 JavaScript 的安装与问答均可用。
 - 从浏览器实际渲染颜色校验品牌强调色仍有色度，并验证正文、说明、强调文字和主按钮文字至少 4.5:1；可捕获共享主题选择器覆盖局部品牌颜色的问题。

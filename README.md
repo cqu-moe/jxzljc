@@ -2,7 +2,7 @@
 
 适用于[重庆大学学生评教系统](http://jxzljc.cqu.edu.cn/)的 Tampermonkey 用户脚本。统一设置满意度、综合评分和评语，核对预览后逐条提交当前学期待评条目。
 
-v0.3.3 使用「填写设置 → 核对预览 → 提交进度」分步界面，支持勾选课程、展开修改每项评分和评语。使用 CQU Design 1.1.0 主题，跟随系统深浅色，底部操作区保持可见。
+v0.3.4 使用「填写设置 → 核对预览 → 提交进度」分步界面，支持勾选课程、展开修改每项评分和评语。使用 CQU Design 1.2.0 主题，跟随系统深浅色，底部操作区保持可见；工作界面保持中性与黑白主按钮。
 
 **[官网与安装指南](https://jxzljc.cqu.moe/)** · **[Greasy Fork 安装](https://greasyfork.org/zh-CN/scripts/601134)** · [GitHub 原始脚本](https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js) · [查看源码](jxzljc.user.js)
 
@@ -48,7 +48,7 @@ GitHub 安装的脚本通过 `@updateURL` / `@downloadURL` 从本仓库 `main` �
 
 ## 官网
 
-`website/` 是独立的静态介绍与安装页，使用 CQU Design theme 1.1.0、快速评教赭金品牌色，跟随系统深浅主题。安装指引从 Tampermonkey 开始，同时提供 Greasy Fork 和 GitHub 两个来源。
+`website/` 是独立的静态介绍与安装页，使用 CQU Design theme 1.2.0 的共享蓝色品牌、正式 Logo 与自适应 favicon，跟随系统深浅主题。首屏说明使用条件并展示脚本实际界面，安装指引从 Tampermonkey 开始，同时提供 Greasy Fork 和 GitHub 两个来源。
 
 ```sh
 npm run dev:website

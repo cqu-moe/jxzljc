@@ -1,6 +1,6 @@
 {
-  "userscriptSha256": "1618ecf3edf274bf8c30c92ef2bbb13be7d64ab0befe8ccbdb2c4eeab48b7069",
-  "version": "0.3.3",
+  "userscriptSha256": "6a177384ea8a5c6ccf5b2c0b5c7ca0b1afe3664e877af72e5f7adbe1b78942de",
+  "version": "0.3.4",
   "command": "npm run capture:website",
   "scope": "Actual userscript UI; synthetic data; all network requests intercepted; no school requests."
 }

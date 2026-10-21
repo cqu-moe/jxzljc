@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         重庆大学快速评教
 // @namespace    https://github.com/cqu-moe/jxzljc
-// @version      0.3.3
+// @version      0.3.4
 // @license      MIT
 // @updateURL    https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js
 // @downloadURL  https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js
@@ -63,14 +63,18 @@
   --muted-foreground: oklch(0.46 0 0);
   --border: oklch(0 0 0 / 0.1);
   --input: oklch(0.6 0 0);
-  --ring: oklch(0.5 0 0);
+  --brand-solid: oklch(0.49 0.16 258);
+  --brand-on-solid: oklch(0.99 0 0);
+  --brand-ink: oklch(0.45 0.16 258);
+  --brand-soft: oklch(0.955 0.018 258);
+  --ring: var(--brand-ink);
   --primary: oklch(0.22 0 0);
   --primary-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.49 0.18 25);
   --destructive-foreground: oklch(1 0 0);
   --success: oklch(0.4 0.1 155);
   --warning: oklch(0.45 0.09 70);
-  --link: oklch(0.46 0.16 255);
+  --link: var(--brand-ink);
   --overlay: oklch(0.15 0 0 / 0.35);
   --shadow-popover: 0 8px 30px oklch(0.2 0 0 / 0.12);
   --shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 2px 4px oklch(0 0 0 / 0.02);
@@ -92,14 +96,15 @@
   --muted-foreground: oklch(0.735 0 0);
   --border: oklch(0.37 0 0);
   --input: oklch(0.56 0 0);
-  --ring: oklch(0.7 0 0);
+  --brand-solid: oklch(0.39 0.1152 258);
+  --brand-ink: oklch(0.8 0.088 258);
+  --brand-soft: oklch(0.29 0.025 258);
   --primary: oklch(0.93 0 0);
   --primary-foreground: oklch(0.235 0 0);
   --destructive: oklch(0.74 0.14 25);
   --destructive-foreground: oklch(0.2 0 0);
   --success: oklch(0.77 0.105 155);
   --warning: oklch(0.8 0.1 70);
-  --link: oklch(0.78 0.1 255);
   --overlay: oklch(0.12 0 0 / 0.6);
   --shadow-popover: 0 8px 30px oklch(0.1 0 0 / 0.35);
   --shadow-card: 0 1px 2px oklch(0 0 0 / 0.12);
@@ -113,14 +118,15 @@
     --muted-foreground: oklch(0.735 0 0);
     --border: oklch(0.37 0 0);
     --input: oklch(0.56 0 0);
-    --ring: oklch(0.7 0 0);
+    --brand-solid: oklch(0.39 0.1152 258);
+    --brand-ink: oklch(0.8 0.088 258);
+    --brand-soft: oklch(0.29 0.025 258);
     --primary: oklch(0.93 0 0);
     --primary-foreground: oklch(0.235 0 0);
     --destructive: oklch(0.74 0.14 25);
     --destructive-foreground: oklch(0.2 0 0);
     --success: oklch(0.77 0.105 155);
     --warning: oklch(0.8 0.1 70);
-    --link: oklch(0.78 0.1 255);
     --overlay: oklch(0.12 0 0 / 0.6);
     --shadow-popover: 0 8px 30px oklch(0.1 0 0 / 0.35);
     --shadow-card: 0 1px 2px oklch(0 0 0 / 0.12);
