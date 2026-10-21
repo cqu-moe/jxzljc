@@ -2,7 +2,7 @@
   "name": "cqu-jxzljc",
   "private": true,
   "license": "MIT",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "重庆大学学生评教快速评价用户脚本",
   "type": "module",
   "scripts": {

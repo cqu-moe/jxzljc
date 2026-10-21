@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+  <title>快速评教 · 交互演示</title>
+  <link rel="stylesheet" href="/demo-frame.css">
+  <script src="/demo-userscript.js" defer></script>
+  <script src="/demo-frame.js" defer></script>
+</head>
+<body>
+  <input hidden id="overallRating" type="range" min="1" max="95" step="1" data-initial="1">
+  <div id="evaluationModal" hidden></div>
+</body>
+</html>

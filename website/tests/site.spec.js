@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const colorScheme of ['light', 'dark']) for (const width of [320, 390, 768, 1440]) {
-  test(`${width}px ${colorScheme}: readable layout, assets, controls and screenshot switching`, async ({ page }) => {
+  test(`${width}px ${colorScheme}: readable layout, assets, controls and interactive demo`, async ({ page }) => {
     const failures = [];
     page.on('pageerror', error => failures.push(error.message));
     page.on('response', response => { if (response.status() >= 400) failures.push(response.url()); });
@@ -16,16 +16,14 @@ for (const colorScheme of ['light', 'dark']) for (const width of [320, 390, 768,
     await expect(page).toHaveTitle(/快速评教/);
     await expect(page.locator('#hero-title')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    for (const name of ['填写设置', '核对预览', '提交进度']) {
-      const button = page.getByRole('button', { name });
-      await button.click();
-      await expect(button).toHaveAttribute('aria-pressed', 'true');
-      const picture = page.locator(`#${await button.getAttribute('aria-controls')}`);
-      await expect(picture).toBeVisible();
-      await expect.poll(() => picture.locator('img').evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
-      expect(await picture.locator('img').evaluate(img => img.currentSrc)).toContain(`${width <= 600 ? '-mobile' : ''}-${colorScheme}.png`);
-    }
-    await page.getByRole('button', { name: '核对预览' }).click();
+    const demo = page.frameLocator('#demo-frame');
+    await expect(demo.getByText('已选 3 / 3', { exact: true })).toBeVisible();
+    await demo.locator('#list summary').first().click();
+    await expect(demo.getByLabel('教学设计').first()).toBeVisible();
+    expect(await demo.locator('dialog').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    await demo.getByLabel('教学设计').first().selectOption('A');
+    await demo.locator('#list summary').first().click();
+    await expect(demo.getByRole('button', { name: '开始评教', exact: true })).toBeInViewport();
     await page.getByRole('link', { name: '开始安装', exact: true }).click();
     await expect(page.locator('.steps li').first()).toContainText('安装油猴 Tampermonkey');
     await page.getByText('Chrome / Edge 提示需要执行用户脚本的权限？', { exact: true }).click();
@@ -49,11 +47,12 @@ test('installation destinations, keyboard controls and theme changes survive rel
   await expect(page.getByRole('link', { name: '打开学生评教系统', exact: true })).toHaveAttribute('href', 'http://jxzljc.cqu.edu.cn/xspj/xspj/index/xspjindex');
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: '跳到正文' })).toBeFocused();
-  const step = page.getByRole('button', { name: '填写设置' });
-  await step.focus();
+  const demo = page.frameLocator('#demo-frame');
+  const back = demo.getByRole('button', { name: '上一步', exact: true });
+  await back.focus();
   await page.keyboard.press('Enter');
-  await expect(step).toHaveAttribute('aria-pressed', 'true');
-  expect(await step.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('solid');
+  await expect(demo.getByLabel('满意度档位')).toBeVisible();
+  expect(await demo.locator('#settings-title').evaluate(el => el === el.getRootNode().activeElement)).toBe(true);
   const summary = page.locator('.faq summary').first();
   await summary.focus();
   await page.keyboard.press('Enter');
@@ -99,7 +98,7 @@ test('brand color and readable text survive theme stylesheet precedence', async 
         scene: rgb(style('.product-scene').backgroundColor),
         caption: rgb(style('figcaption').color),
         note: rgb(style('.scene-note').color),
-        selected: rgb(style('.demo-switch [aria-pressed="true"]').color),
+        selected: rgb(style('#demo-playback').color),
         button: rgb(style('.button').backgroundColor),
         buttonText: rgb(style('.button').color),
       };
@@ -112,4 +111,95 @@ test('brand color and readable text survive theme stylesheet precedence', async 
     }
     for (const [text, background] of [['foreground', 'background'], ['muted', 'background'], ['note', 'background'], ['brand', 'background'], ['buttonText', 'button'], ['caption', 'scene'], ['selected', 'scene']]) expect(contrast(colors[text], colors[background])).toBeGreaterThanOrEqual(4.5);
   }
+});
+
+
+test('demo edits, selection, submission and reset stay local', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const requests = [];
+  page.on('request', request => requests.push(request.url()));
+  await page.goto('/');
+  const demo = page.frameLocator('#demo-frame');
+  await expect(demo.getByText('已选 3 / 3', { exact: true })).toBeVisible();
+  await demo.getByRole('checkbox', { name: '评价 大学英语 · 王老师' }).uncheck();
+  await demo.locator('#list summary').first().click();
+  const course = demo.getByRole('group', { name: '高等数学 · 陈老师的评价内容' });
+  await course.getByLabel('综合评分').fill('93');
+  await course.getByLabel('教学设计').selectOption('A');
+  await course.getByLabel('评语').fill('例题很有帮助。');
+  await expect(course.getByLabel('综合评分')).toHaveValue('93');
+  await demo.getByRole('button', { name: '上一步', exact: true }).click();
+  await demo.getByRole('button', { name: '下一步', exact: true }).click();
+  await expect(course.getByLabel('评语')).toHaveValue('例题很有帮助。');
+  await expect(demo.getByText('已选 2 / 3', { exact: true })).toBeVisible();
+  await demo.getByRole('button', { name: '开始评教', exact: true }).click();
+  await expect(demo.getByRole('status')).toHaveText('完成：2 / 2 个条目已核实提交成功。');
+  await expect(demo.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2');
+  await expect(demo.locator('#records')).toContainText('高等数学');
+  await expect(demo.locator('#records')).not.toContainText('大学英语');
+  await demo.getByRole('button', { name: '再试一次', exact: true }).click();
+  await expect(demo.getByText('已选 3 / 3', { exact: true })).toBeVisible();
+  const frame = page.frame({ url: `${base}/demo.html` });
+  expect(await frame.evaluate(() => {
+    try { return parent.document.title; } catch (error) { return error.name; }
+  })).toBe('SecurityError');
+  expect(await frame.evaluate(async () => {
+    try { await window.fetch('/xspj/xspj/index/getCourses'); return 'allowed'; } catch { return 'blocked'; }
+  })).toBe('blocked');
+  expect(requests.filter(url => new URL(url).origin !== base || url.includes('/xspj/'))).toEqual([]);
+});
+
+test('idle playback finishes once without taking focus or scrolling the page', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  const demo = page.frameLocator('#demo-frame');
+  await expect(page.getByRole('button', { name: '暂停演示' })).toBeVisible();
+  await expect(demo.getByRole('heading', { name: '统一评价设置' })).toBeVisible({ timeout: 8000 });
+  await expect(demo.getByRole('status')).toHaveText('完成：3 / 3 个条目已核实提交成功。', { timeout: 18000 });
+  await expect(page.getByRole('button', { name: '重播演示' })).toBeVisible();
+  expect(await page.evaluate(() => ({ y: scrollY, focused: document.activeElement.tagName }))).toEqual({ y: 0, focused: 'BODY' });
+  await page.getByRole('button', { name: '重播演示' }).click();
+  await expect(demo.getByRole('heading', { name: '统一评价设置' })).toBeVisible();
+  await page.getByRole('button', { name: '暂停演示' }).click();
+  await expect(page.getByRole('button', { name: '播放演示' })).toBeVisible();
+  await demo.locator('#settings').getByLabel('综合评分').fill('87');
+  await page.waitForTimeout(5000);
+  await expect(demo.locator('#settings').getByLabel('综合评分')).toHaveValue('87');
+  await expect(demo.getByRole('button', { name: '下一步', exact: true })).toBeVisible();
+});
+
+test('pointer takeover and reduced motion keep the preview under user control', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  const demo = page.frameLocator('#demo-frame');
+  await expect(page.getByRole('button', { name: '暂停演示' })).toBeVisible();
+  await page.locator('#demo-frame').hover();
+  await expect(page.getByRole('button', { name: '播放演示' })).toBeVisible();
+  await demo.locator('#list summary').first().click();
+  await demo.locator('#list details').first().getByLabel('综合评分').fill('88');
+  await page.waitForTimeout(5500);
+  await expect(demo.locator('#list details').first().getByLabel('综合评分')).toHaveValue('88');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.mouse.move(0, 0);
+  await page.reload();
+  await expect(demo.getByText('已选 3 / 3', { exact: true })).toBeVisible();
+  await page.waitForTimeout(5500);
+  await expect(demo.getByText('已选 3 / 3', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '播放演示' })).toBeVisible();
+});
+
+test('leaving the viewport stops playback and returning does not restart it', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  const demo = page.frameLocator('#demo-frame');
+  await expect(page.getByRole('button', { name: '暂停演示' })).toBeVisible();
+  await page.getByRole('link', { name: '开始安装', exact: true }).click();
+  await expect(page.getByRole('button', { name: '播放演示' })).toBeAttached();
+  await page.waitForTimeout(5500);
+  await page.locator('#preview').scrollIntoViewIfNeeded();
+  await expect(demo.getByText('已选 3 / 3', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '播放演示' })).toBeVisible();
 });
