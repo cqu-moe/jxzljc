@@ -39,6 +39,16 @@ for (const colorScheme of ['light', 'dark']) for (const width of [320, 390, 768,
     await expect(page.getByRole('link', { name: '查看油猴官方图文说明' })).toBeVisible();
     await page.getByLabel('其他安装来源').click();
     await expect(page.locator('.install-menu').getByRole('link', { name: 'Greasy Fork', exact: true })).toBeVisible();
+    expect(await page.locator('.install-button').evaluate(group => {
+      const left = group.querySelector('a').getBoundingClientRect();
+      const right = group.querySelector('summary').getBoundingClientRect();
+      return {
+        topsAligned: Math.abs(left.top - right.top) < 0.1,
+        bottomsAligned: Math.abs(left.bottom - right.bottom) < 0.1,
+        edgesJoined: Math.abs(left.right - right.left) < 0.1,
+        arrowTarget: Math.min(right.width, right.height) >= 44,
+      };
+    })).toEqual({ topsAligned: true, bottomsAligned: true, edgesJoined: true, arrowTarget: true });
     expect(await page.locator('.install-menu').evaluate(el => {
       const rect = el.getBoundingClientRect();
       return rect.left >= 0 && rect.right <= innerWidth && el.scrollWidth <= el.clientWidth;
@@ -133,6 +143,40 @@ test('alternate installation sources support keyboard navigation and dismiss wit
   await page.getByRole('heading', { name: '安装「重庆大学快速评教」脚本' }).click();
   await expect(links.first()).not.toBeVisible();
   await expect(page).toHaveURL(base + '/');
+});
+
+test('pointer-opened installation menu exits, retargets and reduces spatial motion', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  const sources = page.locator('.install-sources');
+  const menu = page.locator('.install-menu');
+  await page.getByLabel('其他安装来源').click();
+  await expect(menu).toBeVisible();
+  expect(await menu.evaluate(el => getComputedStyle(el).transformOrigin.endsWith(' 0px'))).toBe(true);
+  const reversal = await sources.evaluate(details => {
+    const menu = details.querySelector('.install-menu');
+    const trigger = details.querySelector('summary');
+    const pointerClick = () => trigger.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }));
+    pointerClick();
+    const closing = { open: details.open, inert: menu.inert };
+    pointerClick();
+    return { closing, reopened: { open: details.open, inert: menu.inert } };
+  });
+  expect(reversal.closing).toEqual({ open: true, inert: true });
+  expect(reversal.reopened).toEqual({ open: true, inert: false });
+  await page.waitForTimeout(200);
+  await expect(sources).toHaveAttribute('open', '');
+  await expect(menu.getByRole('link', { name: 'Greasy Fork', exact: true })).toBeVisible();
+  await page.getByLabel('其他安装来源').click();
+  await expect(sources).not.toHaveAttribute('open', '');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.getByLabel('其他安装来源').click();
+  await expect(menu).toBeVisible();
+  expect(await menu.evaluate(el => ({
+    transform: getComputedStyle(el).transform,
+    transitionProperty: getComputedStyle(el).transitionProperty,
+  }))).toEqual({ transform: 'none', transitionProperty: 'opacity' });
 });
 
 test('installation and FAQ work without JavaScript', async ({ browser }) => {

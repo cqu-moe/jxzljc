@@ -96,7 +96,21 @@ npm run build:website
 
 安装按钮左侧直接下载本站脚本，右侧箭头用原生 `details` / `summary` 展开备用链接：[Greasy Fork 601134](https://greasyfork.org/zh-CN/scripts/601134) 与 GitHub main 原始脚本。箭头有“其他安装来源”可访问名称和至少 44px 点击宽度；支持 Enter / Space 展开、Tab 访问链接、Escape 返回箭头、点击外部或移出焦点收起。关闭时链接不进入 Tab 顺序；禁用 JavaScript 时仍可展开并安装。
 
+分体按钮两侧统一为 50px 高，分隔线在上下留白。指针操作时，菜单从右上方以 180ms 淡入和轻微位移、缩放展开，以 120ms 收起，箭头同步旋转；快速反向操作会取消待完成的关闭。收起期间链接立即设为 inert，避免误点或聚焦。键盘操作即时响应；减少动态效果时只保留淡入淡出。无 JavaScript 时仍可使用原生展开控件。
+
 v0.3.6 起源脚本的 `@updateURL` / `@downloadURL` 均指向本站固定地址，名称与 namespace 不变；Greasy Fork 分发仍使用其管理的更新地址。旧版无法连接原更新源时，需要从本站安装链接手动更新一次。发布验收应检查线上下载返回 JavaScript 原文、版本与构建源文件一致，并单独验证 Tampermonkey 安装及更新；首页可达、本地静态服务器或 CI 通过都不能证明扩展后台请求不受挑战页影响，也不能证明国内网络可达。
+
+### 下载路径的 Cloudflare 例外
+
+2026-10-21 的无 Cookie 下载被 Super Bot Fight Mode 的 `manage definite bots for static resources` 规则挑战（规则 ID `5ac94856e22545c0ac580ded156bc052`）。已在 `cqu.moe` 的 Custom rules 添加 `JXZLJC public userscript install and update`，只跳过 `http_request_sbfm`：
+
+```text
+(http.host eq "jxzljc.cqu.moe" and http.request.uri.path eq "/jxzljc.user.js" and http.request.method in {"GET" "HEAD"})
+```
+
+规则 ID 为 `be8f4b88f64d4fd099c38cb091f66f7a`，开启匹配日志。未跳过其他自定义规则、WAF Managed Rules、限流、Browser Integrity Check 或 Security Level，也未修改全站机器人防护设置。配置保存在 Cloudflare 控制台，Wrangler 部署不会创建此例外；回滚时禁用或删除该条规则即可。
+
+保存后回读确认规则生效；无 Cookie GET、HEAD 和带查询参数的 GET 均不再带 `cf-mitigated: challenge`。当时脚本尚未部署，三者返回 404；`/theme.css` 和 `/jxzljc.user.js/` 对照请求仍返回 403 挑战。上线后仍需验收脚本 200、内容一致与真实油猴更新，不能把此次 404 当作分发成功。例外的范围参考 [Cloudflare Skip options](https://developers.cloudflare.com/waf/custom-rules/skip/options/)。
 
 ## 2026-10-21 · 自托管安装与更新（v0.3.6）
 
@@ -104,6 +118,7 @@ v0.3.6 起源脚本的 `@updateURL` / `@downloadURL` 均指向本站固定地址
 - 下载回归在旧构建上因 `/jxzljc.user.js` 返回 404 而失败；新构建返回与源文件完全一致的脚本，版本与包版本一致，两个更新地址均指向本站。
 - 本地 Wrangler runtime 返回 `text/javascript; charset=utf-8`、默认重新验证缓存头及 ETag，条件请求返回 304，未知脚本路径返回 404。
 - 分体按钮覆盖 320 / 390 / 768 / 1440px × 浅深主题、44px 点击范围、键盘关闭与焦点恢复、点击外部收起和无 JavaScript 展开。实看桌面浅色及 320px 深色展开效果。
+- 按钮接缝与菜单动效调整后，13 项定向回归通过，覆盖八种尺寸/主题、下载原文、键盘、关闭中不可交互、快速反向、减少动态效果、无 JavaScript 和主题对比度；实看进出动画帧，并刷新本地 Wrangler 预览。
 - 未部署到生产，未验收国内实网、真实 Tampermonkey 安装或自动更新。本次仅修改脚本版本与更新元数据，评教业务代码不变；备用示例截图仍保留 v0.3.5 的真实来源记录。
 
 ## 2026-10-21 · 可交互示例

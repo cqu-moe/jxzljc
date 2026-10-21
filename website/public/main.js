@@ -1,23 +1,60 @@
 const installSources = document.querySelector('.install-sources');
+const installTrigger = installSources.querySelector('summary');
+const installMenu = installSources.querySelector('.install-menu');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let closeTimer;
+installSources.dataset.state = 'closed';
+installMenu.inert = true;
+const closeMenu = animated => {
+  if (installSources.dataset.state === 'closing') return;
+  clearTimeout(closeTimer);
+  if (!installSources.open) {
+    installSources.dataset.state = 'closed';
+    return;
+  }
+  if (!animated) {
+    installSources.open = false;
+    installSources.dataset.state = 'instant';
+    installMenu.inert = true;
+    return;
+  }
+  installSources.dataset.state = 'closing';
+  installMenu.inert = true;
+  closeTimer = setTimeout(() => {
+    installSources.open = false;
+    installSources.dataset.state = 'closed';
+  }, 120);
+};
+const openMenu = animated => {
+  clearTimeout(closeTimer);
+  installSources.dataset.state = animated ? 'open' : 'instant';
+  installSources.open = true;
+  installMenu.inert = false;
+};
+installTrigger.addEventListener('click', event => {
+  event.preventDefault();
+  const animated = event.detail > 0;
+  if (installSources.open && installSources.dataset.state !== 'closing') closeMenu(animated);
+  else openMenu(animated);
+});
 installSources.addEventListener('keydown', event => {
   if (event.key !== 'Escape' || !installSources.open) return;
-  installSources.open = false;
-  installSources.querySelector('summary').focus();
+  closeMenu(false);
+  installTrigger.focus();
 });
 for (const type of ['pointerdown', 'focusin']) document.addEventListener(type, event => {
-  if (!installSources.contains(event.target)) installSources.open = false;
+  if (!installSources.contains(event.target)) closeMenu(type === 'pointerdown');
 });
 installSources.addEventListener('click', event => {
   if (!event.target.closest('a')) return;
-  installSources.open = false;
-  installSources.querySelector('summary').focus();
+  closeMenu(event.detail > 0);
+  installTrigger.focus();
 });
 
 const scene = document.querySelector('.product-scene');
 const frame = document.getElementById('demo-frame');
 const playback = document.getElementById('demo-playback');
 const status = document.querySelector('.demo-toolbar span');
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let automatic = !reducedMotion.matches;
 let visible = false;
 let hovered = matchMedia('(hover: hover)').matches && scene.matches(':hover');
