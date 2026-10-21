@@ -14,7 +14,8 @@ const waits = new Set();
 // One pausable clock drives typing, scene changes and simulated requests.
 function delay(ms, signal) {
   return new Promise((resolve, reject) => {
-    let remaining = ms, timer, since;
+    // Leave time to read automatic steps; manual actions keep their original timing.
+    let remaining = ms * (automatic ? 2.5 : 1), timer, since;
     const finish = () => { clearTimeout(timer); waits.delete(task); signal?.removeEventListener('abort', abort); };
     const abort = () => { finish(); reject(new DOMException('Playback interrupted', 'AbortError')); };
     const task = {
@@ -112,7 +113,7 @@ function takeOver() {
 
 function animate(element, frames, options = {}) {
   if (reducedMotion.matches) return;
-  const animation = element.animate(frames, { duration: 180, easing: 'cubic-bezier(0.19, 1, 0.22, 1)', ...options });
+  const animation = element.animate(frames, { duration: 300, easing: 'cubic-bezier(0.19, 1, 0.22, 1)', ...options });
   if (suspended) animation.pause();
 }
 

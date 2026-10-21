@@ -162,19 +162,27 @@ test('demo edits, selection, submission and reset stay local', async ({ page }) 
 });
 
 test('autoplay types, selects and repeats complete flows without moving page focus', async ({ page }) => {
+  test.setTimeout(90000);
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
   const demo = page.frameLocator('#demo-frame');
   await expect(demo.getByRole('heading', { name: '统一评价设置' })).toBeVisible();
   await expect(demo.locator('.demo-options')).toBeVisible();
+  await page.waitForTimeout(1000);
+  expect(await demo.locator('.demo-options').isVisible()).toBe(true);
   await expect(demo.getByLabel('满意度档位')).toHaveValue('B');
   await expect.poll(() => demo.locator('#comment').inputValue()).toMatch(/^讲解清楚/);
-  expect((await demo.locator('#comment').inputValue()).length).toBeLessThan('讲解清楚，希望多一些课堂练习。'.length);
+  const typed = (await demo.locator('#comment').inputValue()).length;
+  await page.waitForTimeout(1000);
+  const later = (await demo.locator('#comment').inputValue()).length;
+  expect(later).toBeGreaterThan(typed);
+  expect(later - typed).toBeLessThanOrEqual(6);
+  expect(later).toBeLessThan('讲解清楚，希望多一些课堂练习。'.length);
   for (let cycle = 0; cycle < 2; cycle++) {
-    await expect(demo.getByRole('status')).toHaveText('完成：3 / 3 个条目已核实提交成功。', { timeout: 15000 });
+    await expect(demo.getByRole('status')).toHaveText('完成：3 / 3 个条目已核实提交成功。', { timeout: 45000 });
     expect(await page.evaluate(() => ({ y: scrollY, focused: document.activeElement.tagName }))).toEqual({ y: 0, focused: 'BODY' });
-    await expect(demo.getByRole('heading', { name: '统一评价设置' })).toBeVisible({ timeout: 5000 });
+    await expect(demo.getByRole('heading', { name: '统一评价设置' })).toBeVisible({ timeout: 8000 });
   }
 });
 
@@ -184,7 +192,7 @@ test('hover freezes typing and resumes from the same character; editing takes co
   await page.goto('/');
   const demo = page.frameLocator('#demo-frame');
   const comment = demo.locator('#comment');
-  await expect.poll(() => comment.inputValue()).toMatch(/^讲解/);
+  await expect.poll(() => comment.inputValue(), { timeout: 10000 }).toMatch(/^讲解/);
   await page.locator('#preview').hover({ position: { x: 8, y: 8 } });
   await expect(page.getByText('示例数据 · 移开继续', { exact: true })).toBeVisible();
   await page.waitForTimeout(200);
@@ -204,11 +212,12 @@ test('hover freezes typing and resumes from the same character; editing takes co
 });
 
 test('hover freezes simulated submission too; the pause button stays paused after pointer leaves', async ({ page }) => {
+  test.setTimeout(45000);
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
   const demo = page.frameLocator('#demo-frame');
-  await expect(demo.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1', { timeout: 15000 });
+  await expect(demo.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1', { timeout: 45000 });
   await page.locator('#preview').hover({ position: { x: 8, y: 8 } });
   await page.waitForTimeout(200);
   const progress = await demo.getByRole('progressbar').getAttribute('aria-valuenow');
@@ -222,7 +231,7 @@ test('hover freezes simulated submission too; the pause button stays paused afte
   await expect(demo.getByRole('progressbar')).toHaveAttribute('aria-valuenow', progress);
   await page.getByRole('button', { name: '继续演示' }).click();
   await page.mouse.move(0, 0);
-  await expect(demo.getByRole('status')).toHaveText('完成：3 / 3 个条目已核实提交成功。');
+  await expect(demo.getByRole('status')).toHaveText('完成：3 / 3 个条目已核实提交成功。', { timeout: 12000 });
 });
 
 test('reduced motion starts with static empty settings', async ({ page }) => {
@@ -241,7 +250,7 @@ test('playback freezes outside the viewport and resumes when visible', async ({ 
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
   const demo = page.frameLocator('#demo-frame');
-  await expect.poll(() => demo.locator('#comment').inputValue()).toMatch(/^讲解/);
+  await expect.poll(() => demo.locator('#comment').inputValue(), { timeout: 10000 }).toMatch(/^讲解/);
   await page.getByRole('link', { name: '开始安装', exact: true }).click();
   await page.waitForTimeout(200);
   const paused = await demo.locator('#comment').inputValue();
@@ -249,7 +258,7 @@ test('playback freezes outside the viewport and resumes when visible', async ({ 
   await expect(demo.locator('#comment')).toHaveValue(paused);
   await page.mouse.move(0, 0);
   await page.locator('#preview').scrollIntoViewIfNeeded();
-  await expect(demo.getByText('已选 3 / 3', { exact: true })).toBeVisible();
+  await expect(demo.getByText('已选 3 / 3', { exact: true })).toBeVisible({ timeout: 10000 });
 });
 
 
@@ -271,13 +280,14 @@ test('reset clears the demo and stays on the first step', async ({ page }) => {
 });
 
 test('taking control during submission stops after the pending course without an error', async ({ page }) => {
+  test.setTimeout(45000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
   const demo = page.frameLocator('#demo-frame');
-  await expect(demo.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0', { timeout: 15000 });
+  await expect(demo.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0', { timeout: 45000 });
   await demo.getByRole('button', { name: '停止后续提交', exact: true }).click();
   await expect(demo.getByRole('status')).toContainText('已停止');
   await page.mouse.move(0, 0);
