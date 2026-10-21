@@ -2,11 +2,11 @@
 
 适用于[重庆大学学生评教系统](http://jxzljc.cqu.edu.cn/)的 Tampermonkey 用户脚本。统一设置满意度、综合评分和评语，核对预览后逐条提交当前学期待评条目。
 
-v0.3.5 使用「填写设置 → 核对预览 → 提交进度」分步界面，支持勾选课程、展开修改每项评分和评语。使用 CQU Design 1.2.0 主题，跟随系统深浅色，底部操作区保持可见；工作界面保持中性与黑白主按钮。
+v0.3.6 使用「填写设置 → 核对预览 → 提交进度」分步界面，支持勾选课程、展开修改每项评分和评语。使用 CQU Design 1.2.0 主题，跟随系统深浅色，底部操作区保持可见；工作界面保持中性与黑白主按钮。
 
-**[官网与安装指南](https://jxzljc.cqu.moe/)** · **[Greasy Fork 安装](https://greasyfork.org/zh-CN/scripts/601134)** · [GitHub 原始脚本](https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js) · [查看源码](jxzljc.user.js)
+**[安装脚本](https://jxzljc.cqu.moe/jxzljc.user.js)** · [官网与安装指南](https://jxzljc.cqu.moe/) · [Greasy Fork 备用](https://greasyfork.org/zh-CN/scripts/601134) · [GitHub 备用](https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js) · [查看源码](jxzljc.user.js)
 
-GitHub 安装的脚本通过 `@updateURL` / `@downloadURL` 从本仓库 `main` 分支检查并下载新版；Greasy Fork 安装的脚本由 Greasy Fork 提供更新地址。自动检查需在 Tampermonkey 中启用。手动粘贴安装的旧副本请先通过安装链接重新安装一次，以写入更新地址。
+从官网或 GitHub 安装的 v0.3.6 及后续版本，通过 `@updateURL` / `@downloadURL` 从 `https://jxzljc.cqu.moe/jxzljc.user.js` 检查并下载新版；Greasy Fork 安装的脚本由 Greasy Fork 提供更新地址。自动检查需在 Tampermonkey 中启用。旧版如果无法访问原更新源，或通过手动粘贴安装，请打开官网安装链接，在油猴确认页更新已有脚本，以写入本站更新地址；无需同时安装多份。名称与 namespace 保持不变。
 
 ## 使用
 
@@ -48,7 +48,7 @@ GitHub 安装的脚本通过 `@updateURL` / `@downloadURL` 从本仓库 `main` �
 
 ## 官网
 
-`website/` 是独立的静态介绍与安装页，使用 CQU Design theme 1.2.0 的共享蓝色品牌、正式 Logo 与自适应 favicon，跟随系统深浅主题。首屏说明使用条件并展示脚本实际界面，安装指引从 Tampermonkey 开始，同时提供 Greasy Fork 和 GitHub 两个来源。
+`website/` 是独立的静态介绍与安装页，使用 CQU Design theme 1.2.0 的共享蓝色品牌、正式 Logo 与自适应 favicon，跟随系统深浅主题。首屏说明使用条件并展示脚本实际界面，安装指引从 Tampermonkey 开始；安装按钮默认下载本站脚本，右侧箭头展开 Greasy Fork 和 GitHub 备用来源，不按 IP 分流。
 
 ```sh
 npm run dev:website
@@ -58,7 +58,7 @@ npm run test:website
 npm run build:website
 ```
 
-产物在 `website/dist/`，可直接交给静态站点托管。官网的 Cloudflare Git Connector 部署配置、构建、素材来源和验证范围见 [官网维护说明](docs/website.md)。用户脚本的安装和运行不依赖官网。
+产物在 `website/dist/`，包含与根目录源文件一致的 `jxzljc.user.js`，交给现有 Workers Static Assets 随官网发布。官网的 Cloudflare Git Connector 部署配置、构建、素材来源和验证范围见 [官网维护说明](docs/website.md)。本站安装及更新依赖官网可达，已安装脚本在学校页面运行时不依赖官网。
 
 ## 开发与验证
 

@@ -54,7 +54,18 @@
       <div class="section-head"><p class="section-label">安装与使用</p><h2 id="install-title">准备一次，<br>下次直接用。</h2><p>从油猴到第一次核对，按顺序来。<br>已安装油猴，可以从第二步开始。</p></div>
       <ol class="steps">
         <li class="step"><span class="step-number" aria-hidden="true">01</span><div><h3>安装油猴 Tampermonkey</h3><p>用电脑浏览器打开 Tampermonkey 官网，选择你正在使用的浏览器，进入对应的扩展商店。点击“添加”或“获取”，确认安装，然后在浏览器的扩展菜单里找到油猴并保持启用。</p><div class="step-actions"><a class="button secondary" href="https://www.tampermonkey.net/" target="_blank" rel="noopener noreferrer">前往油猴官网</a></div><details class="permission-note"><summary>Chrome / Edge 提示需要执行用户脚本的权限？</summary><div><p>打开浏览器的扩展管理页面，找到 Tampermonkey。在支持的浏览器版本中，打开详情里的“允许用户脚本”；如果没有这个选项，按油猴官方说明启用“开发者模式”。完成后刷新评教页面。</p><a class="text-link" href="https://www.tampermonkey.net/faq.php?locale=zh&amp;q=Q209" target="_blank" rel="noopener noreferrer">查看油猴官方图文说明</a></div></details></div></li>
-        <li class="step"><span class="step-number" aria-hidden="true">02</span><div><h3>安装「重庆大学快速评教」脚本</h3><p>安装并启用油猴 Tampermonkey 后，打开 Greasy Fork 页面，点击“安装此脚本”，再在油猴弹出的确认页点击“安装”。也可以用 GitHub 安装链接，直接打开油猴确认页。两种来源选一种即可。</p><div class="step-actions"><a class="button brand-action" href="https://greasyfork.org/zh-CN/scripts/601134" target="_blank" rel="noopener noreferrer">从 Greasy Fork 安装</a><a class="text-link" href="https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js" target="_blank" rel="noopener noreferrer">从 GitHub 安装</a></div><p class="micro">安装后，在油猴“管理面板”里确认「重庆大学快速评教」已启用。如果打开的是代码文本，先检查油猴是否安装并启用。</p></div></li>
+        <li class="step"><span class="step-number" aria-hidden="true">02</span><div><h3>安装「重庆大学快速评教」脚本</h3><p>安装并启用油猴 Tampermonkey 后，点击下方“安装脚本”，再在油猴弹出的确认页点击“安装”。按钮右侧的箭头可展开备用安装来源，选择一种即可。</p><div class="step-actions">
+          <div class="install-button">
+            <a class="button brand-action" href="/jxzljc.user.js" target="_blank" rel="noopener noreferrer">安装脚本</a>
+            <details class="install-sources">
+              <summary class="button brand-action" aria-label="其他安装来源"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+              <div class="install-menu">
+                <a href="https://greasyfork.org/zh-CN/scripts/601134" target="_blank" rel="noopener noreferrer">Greasy Fork</a>
+                <a href="https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js" target="_blank" rel="noopener noreferrer">GitHub</a>
+              </div>
+            </details>
+          </div>
+        </div><p class="micro">安装后，在油猴“管理面板”里确认「重庆大学快速评教」已启用。如果打开的是代码文本，先检查油猴是否安装并启用。</p></div></li>
         <li class="step"><span class="step-number" aria-hidden="true">03</span><div><h3>打开学校评教系统</h3><p>正常登录学校的学生评教系统，进入学生评教页面。右下角出现「快速评教」按钮，说明脚本已经运行。若刚安装完，刷新一次页面；已有单门评价窗口时，先关闭它以保存草稿。</p><div class="step-actions"><a class="button secondary" href="http://jxzljc.cqu.edu.cn/xspj/xspj/index/xspjindex" target="_blank" rel="noopener noreferrer">打开学生评教系统</a></div><p class="micro">仅校园网可访问 · HTTP 站点。账号登录只在学校系统完成，这个官网不需要你的账号或密码。</p></div></li>
         <li class="step"><span class="step-number" aria-hidden="true">04</span><div><h3>填写设置，核对后再提交</h3><p>点击「快速评教」，选择满意度和综合评分，按需填写评语。点击“下一步”，勾选课程并逐门核对；需要调整时展开课程，修改该门课的评分或评语。确认无误后，点击脚本中的“开始评教”提交。</p><p class="step-note">请按真实感受评价，一次只在一个标签页运行。停止操作会等当前请求核实后，再停止后续提交。</p></div></li>
       </ol>
@@ -75,7 +86,7 @@
         <details><summary>支持哪些课程？可以在手机上用吗？</summary><p>脚本只处理当前学期尚未评教的条目。目前支持已核实的 A–E 五档选择题，检查过理论课和实验课；遇到未知题型会停止。建议使用电脑浏览器。界面有小屏布局，但手机浏览器的扩展支持及真实手机使用尚未完整验证。</p></details>
         <details><summary>提交失败、停止或刷新后，会发生什么？</summary><p>失败或结果不明确时会停止，不会自动重试。停止后续提交会等待当前请求核实，再停止下一条。刷新不会继续提交，也不会保留本次临时设置；请先在学校页面核实结果，再决定是否重新预览。已经提交的评价仍受学校系统的修改规则约束。</p></details>
         <details><summary>这是学校官方提供的工具吗？</summary><p>这是 CQU Moe 提供的开源辅助工具，并非学校官方产品。评价内容由你确认，最终结果以学校评教系统为准。官网展示的是示例数据，不包含真实课程或教师资料。</p></details>
-        <details><summary>脚本怎么更新，遇到问题去哪里反馈？</summary><p>在油猴中启用更新检查即可。Greasy Fork 安装由 Greasy Fork 提供更新，GitHub 安装从仓库 main 分支更新；无需同时安装两份。</p><a class="text-link" href="https://github.com/cqu-moe/jxzljc/issues" target="_blank" rel="noopener noreferrer">到 GitHub 反馈问题</a><p>请提供浏览器版本和脱敏后的现象，不要附上账号、课程或教师资料、会话凭据。</p></details>
+        <details><summary>脚本怎么更新，遇到问题去哪里反馈？</summary><p>在油猴中启用更新检查即可。从本站或 GitHub 安装的新版脚本由本站提供更新，Greasy Fork 安装仍由 Greasy Fork 更新。旧版如果无法更新，请从本站点击“安装脚本”，在油猴确认页更新已有脚本；无需同时安装多份。</p><a class="text-link" href="https://github.com/cqu-moe/jxzljc/issues" target="_blank" rel="noopener noreferrer">到 GitHub 反馈问题</a><p>请提供浏览器版本和脱敏后的现象，不要附上账号、课程或教师资料、会话凭据。</p></details>
       </div>
     </section>
   </main>

@@ -14,7 +14,7 @@ npm run test:website
 npm run build:website
 ```
 
-构建读取 `@cqu-moe/theme/styles.css`，复制到 `website/dist/theme.css`；从脚本元数据读取版本号填入页面，再复制本地素材。输出目录为 `website/dist/`，由根目录 `wrangler.jsonc` 配置为 Workers Static Assets；不上传研究文档。`dev:website` 使用 Python 3 标准库 HTTP 服务；测试独占 4187 端口，若被占用则报错，不复用其他项目的服务。
+构建读取 `@cqu-moe/theme/styles.css`，复制到 `website/dist/theme.css`；从脚本元数据读取版本号填入页面，并将完整源脚本原样写入 `website/dist/jxzljc.user.js`，再复制本地素材。输出目录为 `website/dist/`，由根目录 `wrangler.jsonc` 配置为 Workers Static Assets；不上传研究文档。`dev:website` 使用 Python 3 标准库 HTTP 服务；测试独占 4187 端口，若被占用则报错，不复用其他项目的服务。
 
 ## GitHub 与 Cloudflare Git Connector
 
@@ -92,7 +92,19 @@ npm run build:website
 
 校园网内外的实际响应与浏览器限制见 [校园网访问采集](network-access.md)。学校入口保留用户指定的完整 HTTP 地址，页面注明仅校园网可访问。
 
-安装权限说明参考 [Tampermonkey 官方 FAQ](https://www.tampermonkey.net/faq.php?locale=zh&q=Q209)。Greasy Fork 链接为用户提供的 [601134](https://greasyfork.org/zh-CN/scripts/601134)，GitHub 安装链接读取仓库 main 的原始脚本。
+安装权限说明参考 [Tampermonkey 官方 FAQ](https://www.tampermonkey.net/faq.php?locale=zh&q=Q209)。主安装地址固定为 `https://jxzljc.cqu.moe/jxzljc.user.js`，与官网一起发布；不增加 R2、Worker 路由逻辑或 IP 查询。沿用 Static Assets 默认的 MIME 类型、ETag 和 `Cache-Control: public, max-age=0, must-revalidate`，不对固定地址设置长期 immutable 缓存。
+
+安装按钮左侧直接下载本站脚本，右侧箭头用原生 `details` / `summary` 展开备用链接：[Greasy Fork 601134](https://greasyfork.org/zh-CN/scripts/601134) 与 GitHub main 原始脚本。箭头有“其他安装来源”可访问名称和至少 44px 点击宽度；支持 Enter / Space 展开、Tab 访问链接、Escape 返回箭头、点击外部或移出焦点收起。关闭时链接不进入 Tab 顺序；禁用 JavaScript 时仍可展开并安装。
+
+v0.3.6 起源脚本的 `@updateURL` / `@downloadURL` 均指向本站固定地址，名称与 namespace 不变；Greasy Fork 分发仍使用其管理的更新地址。旧版无法连接原更新源时，需要从本站安装链接手动更新一次。发布验收应检查线上下载返回 JavaScript 原文、版本与构建源文件一致，并单独验证 Tampermonkey 安装及更新；首页可达、本地静态服务器或 CI 通过都不能证明扩展后台请求不受挑战页影响，也不能证明国内网络可达。
+
+## 2026-10-21 · 自托管安装与更新（v0.3.6）
+
+- 21 项官网交互、30 项脚本受控接口测试和 9 项 Greasy Fork 同步协议测试通过；语法、主题、官网检查及 Wrangler dry run 通过。
+- 下载回归在旧构建上因 `/jxzljc.user.js` 返回 404 而失败；新构建返回与源文件完全一致的脚本，版本与包版本一致，两个更新地址均指向本站。
+- 本地 Wrangler runtime 返回 `text/javascript; charset=utf-8`、默认重新验证缓存头及 ETag，条件请求返回 304，未知脚本路径返回 404。
+- 分体按钮覆盖 320 / 390 / 768 / 1440px × 浅深主题、44px 点击范围、键盘关闭与焦点恢复、点击外部收起和无 JavaScript 展开。实看桌面浅色及 320px 深色展开效果。
+- 未部署到生产，未验收国内实网、真实 Tampermonkey 安装或自动更新。本次仅修改脚本版本与更新元数据，评教业务代码不变；备用示例截图仍保留 v0.3.5 的真实来源记录。
 
 ## 2026-10-21 · 可交互示例
 

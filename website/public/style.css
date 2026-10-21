@@ -47,6 +47,14 @@ nav a { display: inline-flex; align-items: center; justify-content: center; min-
 .button.secondary { background: transparent; border-color: var(--border); color: var(--foreground); }
 .button:active { background: color-mix(in oklch, var(--primary), var(--foreground) 12%); }
 .button.secondary:active { background: var(--muted); }
+.install-button { position: relative; display: inline-flex; }
+.install-button > a { border-start-end-radius: 0; border-end-end-radius: 0; }
+.install-sources > summary.button { min-width: 44px; width: 44px; padding-inline: 0; border-start-start-radius: 0; border-end-start-radius: 0; border-inline-start-color: color-mix(in oklch, var(--brand-on-solid) 30%, transparent); list-style: none; }
+.install-sources > summary::-webkit-details-marker { display: none; }
+.install-sources[open] > summary svg { transform: rotate(180deg); }
+.install-menu { position: absolute; z-index: 2; inset-block-start: calc(100% + var(--space-2)); inset-inline-end: 0; min-width: 100%; padding: var(--space-1); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-popover); }
+.install-menu a { display: flex; align-items: center; min-height: 44px; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); font-size: var(--text-sm); white-space: nowrap; }
+.install-menu a:focus-visible { outline-offset: -2px; background: var(--muted); }
 .text-link { display: inline-flex; align-items: center; gap: var(--space-3); min-height: 44px; color: var(--link); font-size: var(--text-sm); text-decoration: underline; text-underline-offset: 5px; text-decoration-color: var(--border); }
 .micro { color: var(--muted-foreground); font-size: var(--text-xs); margin-top: var(--space-4); }
 .product-scene { position: relative; margin: 0; width: 100%; min-width: 0; padding: var(--space-2) var(--space-3) var(--space-3); background: var(--brand-soft); border-radius: var(--radius-lg); }
@@ -94,6 +102,8 @@ summary { cursor: pointer; min-height: 44px; padding-block: var(--space-3); line
 @media (hover: hover) and (pointer: fine) {
   .button:hover { background: color-mix(in oklch, var(--primary), var(--foreground) 10%); }
   .button.secondary:hover, .demo-toolbar button:hover { background: var(--surface); }
+  .install-menu a:hover { background: var(--muted); }
+  .install-sources > summary:hover { color: var(--brand-on-solid); }
   nav a:hover, summary:hover { color: var(--link); }
   .text-link:hover { text-decoration-color: currentColor; }
 }
@@ -117,6 +127,8 @@ summary { cursor: pointer; min-height: 44px; padding-block: var(--space-3); line
   .step-number { font-size: var(--text-sm); }
   .step h3 { font-size: var(--text-lg); }
   .step .button { width: 100%; }
+  .install-button { width: 100%; }
+  .install-button > a { flex: 1; min-width: 0; }
   .permission-note { padding-left: var(--space-3); }
   .faq summary { font-size: var(--text-base); }
   .site-footer { align-items: flex-start; flex-direction: column; gap: var(--space-3); }

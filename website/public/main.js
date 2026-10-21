@@ -1,3 +1,18 @@
+const installSources = document.querySelector('.install-sources');
+installSources.addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || !installSources.open) return;
+  installSources.open = false;
+  installSources.querySelector('summary').focus();
+});
+for (const type of ['pointerdown', 'focusin']) document.addEventListener(type, event => {
+  if (!installSources.contains(event.target)) installSources.open = false;
+});
+installSources.addEventListener('click', event => {
+  if (!event.target.closest('a')) return;
+  installSources.open = false;
+  installSources.querySelector('summary').focus();
+});
+
 const scene = document.querySelector('.product-scene');
 const frame = document.getElementById('demo-frame');
 const playback = document.getElementById('demo-playback');
