@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 
 const base = 'http://127.0.0.1:4187';
 async function preparePreview(demo) {
@@ -36,8 +37,25 @@ for (const colorScheme of ['light', 'dark']) for (const width of [320, 390, 768,
     await expect(page.locator('.steps li').first()).toContainText('安装油猴 Tampermonkey');
     await page.getByText('Chrome / Edge 提示需要执行用户脚本的权限？', { exact: true }).click();
     await expect(page.getByRole('link', { name: '查看油猴官方图文说明' })).toBeVisible();
+    await page.getByLabel('其他安装来源').click();
+    await expect(page.locator('.install-menu').getByRole('link', { name: 'Greasy Fork', exact: true })).toBeVisible();
+    expect(await page.locator('.install-button').evaluate(group => {
+      const left = group.querySelector('a').getBoundingClientRect();
+      const right = group.querySelector('summary').getBoundingClientRect();
+      return {
+        topsAligned: Math.abs(left.top - right.top) < 0.1,
+        bottomsAligned: Math.abs(left.bottom - right.bottom) < 0.1,
+        edgesJoined: Math.abs(left.right - right.left) < 0.1,
+        arrowTarget: Math.min(right.width, right.height) >= 44,
+      };
+    })).toEqual({ topsAligned: true, bottomsAligned: true, edgesJoined: true, arrowTarget: true });
+    expect(await page.locator('.install-menu').evaluate(el => {
+      const rect = el.getBoundingClientRect();
+      return rect.left >= 0 && rect.right <= innerWidth && el.scrollWidth <= el.clientWidth;
+    })).toBe(true);
     const badTargets = await page.locator('a, button, summary').evaluateAll(nodes => nodes.filter(node => node.getBoundingClientRect().width && getComputedStyle(node).visibility !== 'hidden').filter(node => { const r = node.getBoundingClientRect(); return r.width < 44 || r.height < 44; }).map(node => node.textContent.trim()));
     expect(badTargets).toEqual([]);
+    await page.screenshot({ path: `website/.qa/install-${width}-${colorScheme}.png` });
     await page.getByText('没有出现「快速评教」按钮怎么办？', { exact: true }).click();
     await expect(page.locator('.faq details[open]')).toContainText('用户脚本执行权限');
     expect(failures).toEqual([]);
@@ -47,13 +65,30 @@ for (const colorScheme of ['light', 'dark']) for (const width of [320, 390, 768,
   });
 }
 
+test('self-hosted installation serves the released script with same-origin update URLs', async ({ request }) => {
+  const response = await request.get('/jxzljc.user.js');
+  expect(response.status()).toBe(200);
+  expect(response.headers()['content-type']).toMatch(/(?:application|text)\/javascript/);
+  const script = await response.text();
+  expect(script).toBe(await readFile(new URL('../../jxzljc.user.js', import.meta.url), 'utf8'));
+  const { version } = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
+  expect(script.match(/^\/\/ @version\s+(\S+)/m)?.[1]).toBe(version);
+  for (const field of ['updateURL', 'downloadURL']) {
+    expect(script.match(new RegExp(`^// @${field}\\s+(\\S+)`, 'm'))?.[1]).toBe('https://jxzljc.cqu.moe/jxzljc.user.js');
+  }
+});
+
 test('installation destinations, keyboard controls and theme changes survive reload', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   await expect(page.getByRole('link', { name: '前往油猴官网', exact: true })).toHaveAttribute('href', 'https://www.tampermonkey.net/');
-  await expect(page.getByRole('link', { name: '从 Greasy Fork 安装', exact: true })).toHaveAttribute('href', 'https://greasyfork.org/zh-CN/scripts/601134');
-  await expect(page.getByRole('link', { name: '从 GitHub 安装', exact: true })).toHaveAttribute('href', 'https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js');
+  await expect(page.locator('.install-button').getByRole('link', { name: '安装脚本', exact: true })).toHaveAttribute('href', '/jxzljc.user.js');
+  await page.getByLabel('其他安装来源').click();
+  await expect(page.locator('.install-menu').getByRole('link', { name: 'Greasy Fork', exact: true })).toHaveAttribute('href', 'https://greasyfork.org/zh-CN/scripts/601134');
+  await expect(page.locator('.install-menu').getByRole('link', { name: 'GitHub', exact: true })).toHaveAttribute('href', 'https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js');
+  await page.getByLabel('其他安装来源').click();
   await expect(page.getByRole('link', { name: '打开学生评教系统', exact: true })).toHaveAttribute('href', 'http://jxzljc.cqu.edu.cn/xspj/xspj/index/xspjindex');
+  await page.reload();
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: '跳到正文' })).toBeFocused();
   const demo = page.frameLocator('#demo-frame');
@@ -76,6 +111,103 @@ test('installation destinations, keyboard controls and theme changes survive rel
   }
 });
 
+test('alternate installation sources support keyboard navigation and dismiss without installing', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const sources = page.locator('.install-sources');
+  const trigger = page.getByLabel('其他安装来源');
+  const links = page.locator('.install-menu').getByRole('link');
+  await expect(links.first()).not.toBeVisible();
+  await page.locator('.install-button > a').focus();
+  await page.keyboard.press('Tab');
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: '打开学生评教系统', exact: true })).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Enter');
+  await expect(sources).toHaveAttribute('open', '');
+  await page.keyboard.press('Tab');
+  await expect(links.first()).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(links.last()).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(links.first()).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(links.first()).toBeVisible();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await expect(sources).not.toHaveAttribute('open', '');
+  await trigger.click();
+  await page.getByRole('heading', { name: '安装「重庆大学快速评教」脚本' }).click();
+  await expect(links.first()).not.toBeVisible();
+  await expect(page).toHaveURL(base + '/');
+});
+
+test('rapid pointer clicks do not select installation controls while page prose stays selectable', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const trigger = page.getByLabel('其他安装来源');
+  const selection = () => page.evaluate(() => getSelection().toString());
+  await trigger.scrollIntoViewIfNeeded();
+  await trigger.dblclick();
+  expect(await selection()).toBe('');
+  const triggerBox = await trigger.boundingBox();
+  await page.mouse.click(triggerBox.x + triggerBox.width / 2, triggerBox.y + triggerBox.height / 2, { clickCount: 3 });
+  expect(await selection()).toBe('');
+
+  await page.reload();
+  await trigger.scrollIntoViewIfNeeded();
+  await trigger.click();
+  const item = page.locator('.install-menu').getByRole('link', { name: 'Greasy Fork', exact: true });
+  await expect(item).toBeVisible();
+  const box = await item.boundingBox();
+  await page.mouse.move(box.x + 8, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width - 8, box.y + box.height / 2, { steps: 2 });
+  await page.mouse.up();
+  expect(await selection()).toBe('');
+
+  await page.evaluate(() => getSelection().removeAllRanges());
+  await page.locator('.step').nth(1).locator('p').first().dblclick();
+  expect(await selection()).not.toBe('');
+});
+
+test('pointer-opened installation menu exits, retargets and reduces spatial motion', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  const sources = page.locator('.install-sources');
+  const menu = page.locator('.install-menu');
+  await page.getByLabel('其他安装来源').click();
+  await expect(menu).toBeVisible();
+  expect(await menu.evaluate(el => getComputedStyle(el).transformOrigin.endsWith(' 0px'))).toBe(true);
+  const reversal = await sources.evaluate(details => {
+    const menu = details.querySelector('.install-menu');
+    const trigger = details.querySelector('summary');
+    const pointerClick = () => trigger.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }));
+    pointerClick();
+    const closing = { open: details.open, inert: menu.inert };
+    pointerClick();
+    return { closing, reopened: { open: details.open, inert: menu.inert } };
+  });
+  expect(reversal.closing).toEqual({ open: true, inert: true });
+  expect(reversal.reopened).toEqual({ open: true, inert: false });
+  await page.waitForTimeout(200);
+  await expect(sources).toHaveAttribute('open', '');
+  await expect(menu.getByRole('link', { name: 'Greasy Fork', exact: true })).toBeVisible();
+  await page.getByLabel('其他安装来源').click();
+  await expect(sources).not.toHaveAttribute('open', '');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.getByLabel('其他安装来源').click();
+  await expect(menu).toBeVisible();
+  expect(await menu.evaluate(el => ({
+    transform: getComputedStyle(el).transform,
+    transitionProperty: getComputedStyle(el).transitionProperty,
+  }))).toEqual({ transform: 'none', transitionProperty: 'opacity' });
+});
+
 test('installation and FAQ work without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
@@ -83,7 +215,10 @@ test('installation and FAQ work without JavaScript', async ({ browser }) => {
   await page.goto(base);
   await page.getByRole('link', { name: '开始安装', exact: true }).click();
   await expect(page.locator('#install-title')).toBeVisible();
-  await expect(page.getByRole('link', { name: '从 Greasy Fork 安装', exact: true })).toBeVisible();
+  await expect(page.locator('.install-button').getByRole('link', { name: '安装脚本', exact: true })).toBeVisible();
+  await page.getByLabel('其他安装来源').click();
+  await expect(page.locator('.install-menu').getByRole('link', { name: 'Greasy Fork', exact: true })).toBeVisible();
+  await expect(page.locator('.install-menu').getByRole('link', { name: 'GitHub', exact: true })).toBeVisible();
   await page.locator('.faq summary').first().click();
   await expect(page.locator('.faq details').first()).toHaveAttribute('open', '');
   await context.close();

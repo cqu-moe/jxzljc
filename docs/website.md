@@ -14,7 +14,7 @@ npm run test:website
 npm run build:website
 ```
 
-构建读取 `@cqu-moe/theme/styles.css`，复制到 `website/dist/theme.css`；从脚本元数据读取版本号填入页面，再复制本地素材。输出目录为 `website/dist/`，由根目录 `wrangler.jsonc` 配置为 Workers Static Assets；不上传研究文档。`dev:website` 使用 Python 3 标准库 HTTP 服务；测试独占 4187 端口，若被占用则报错，不复用其他项目的服务。
+构建读取 `@cqu-moe/theme/styles.css`，复制到 `website/dist/theme.css`；从脚本元数据读取版本号填入页面，并将完整源脚本原样写入 `website/dist/jxzljc.user.js`，再复制本地素材。输出目录为 `website/dist/`，由根目录 `wrangler.jsonc` 配置为 Workers Static Assets；不上传研究文档。`dev:website` 使用 Python 3 标准库 HTTP 服务；测试独占 4187 端口，若被占用则报错，不复用其他项目的服务。
 
 ## GitHub 与 Cloudflare Git Connector
 
@@ -92,7 +92,42 @@ npm run build:website
 
 校园网内外的实际响应与浏览器限制见 [校园网访问采集](network-access.md)。学校入口保留用户指定的完整 HTTP 地址，页面注明仅校园网可访问。
 
-安装权限说明参考 [Tampermonkey 官方 FAQ](https://www.tampermonkey.net/faq.php?locale=zh&q=Q209)。Greasy Fork 链接为用户提供的 [601134](https://greasyfork.org/zh-CN/scripts/601134)，GitHub 安装链接读取仓库 main 的原始脚本。
+安装权限说明参考 [Tampermonkey 官方 FAQ](https://www.tampermonkey.net/faq.php?locale=zh&q=Q209)。主安装地址固定为 `https://jxzljc.cqu.moe/jxzljc.user.js`，与官网一起发布；不增加 R2、Worker 路由逻辑或 IP 查询。沿用 Static Assets 默认的 MIME 类型、ETag 和 `Cache-Control: public, max-age=0, must-revalidate`，不对固定地址设置长期 immutable 缓存。
+
+安装按钮左侧安装本站脚本，右侧箭头用原生 `details` / `summary` 展开备用链接：[Greasy Fork 601134](https://greasyfork.org/zh-CN/scripts/601134) 与 GitHub main 原始脚本。箭头有“其他安装来源”可访问名称和至少 44px 点击宽度；支持 Enter / Space 展开、Tab 访问链接、Escape 返回箭头、点击外部或移出焦点收起。关闭时链接不进入 Tab 顺序；禁用 JavaScript 时仍可展开并安装。
+
+主安装按钮沿用 [Greasy Fork 的公开管理器信号](https://github.com/greasyfork-org/greasyfork/blob/main/app/javascript/managers.js)：收到 `window.external` 上 Tampermonkey、Violentmonkey 或 FireMonkey 信号时直接打开脚本；未收到信号则显示安装引导，不能据此断言用户没有安装扩展。弹窗提供油猴官网和“已安装，继续”两条路径，后者保留原生链接导航，并在本浏览器记住明确确认。存储被禁用时，本次页面内仍可继续；刷新后可能再次提示。不探测扩展 ID，也不引入检测依赖。无 JavaScript、修饰键点击和备用链接保留原有链接行为。
+
+引导使用原生 `dialog`，背景不可交互，支持 Escape、关闭按钮、点击遮罩和焦点返回。沿用主题浅深配色、蓝色主按钮与 44px 操作区域；指针打开时以 180ms 轻微位移淡入、120ms 退出，键盘打开即时显示，减少动态效果时仅淡入淡出。
+
+分体按钮两侧统一为 50px 高，分隔线在上下留白。指针操作时，菜单从右上方以 180ms 淡入和轻微位移、缩放展开，以 120ms 收起，箭头同步旋转；快速反向操作会取消待完成的关闭。收起期间链接立即设为 inert，避免误点或聚焦。键盘操作即时响应；减少动态效果时只保留淡入淡出。无 JavaScript 时仍可使用原生展开控件。
+
+按钮及其菜单局部禁用文字选择，避免快速双击、三击展开箭头时误选刚显示的菜单文字；正文仍可选择复制。仅使用 CSS（包含 WebKit 前缀），不拦截全局选择事件。
+
+v0.3.6 起源脚本的 `@updateURL` / `@downloadURL` 均指向本站固定地址，名称与 namespace 不变；Greasy Fork 分发仍使用其管理的更新地址。旧版无法连接原更新源时，需要从本站安装链接手动更新一次。发布验收应检查线上下载返回 JavaScript 原文、版本与构建源文件一致，并单独验证 Tampermonkey 安装及更新；首页可达、本地静态服务器或 CI 通过都不能证明扩展后台请求不受挑战页影响，也不能证明国内网络可达。
+
+### 下载路径的 Cloudflare 例外
+
+2026-10-21 的无 Cookie 下载被 Super Bot Fight Mode 的 `manage definite bots for static resources` 规则挑战（规则 ID `5ac94856e22545c0ac580ded156bc052`）。已在 `cqu.moe` 的 Custom rules 添加 `JXZLJC public userscript install and update`，只跳过 `http_request_sbfm`：
+
+```text
+(http.host eq "jxzljc.cqu.moe" and http.request.uri.path eq "/jxzljc.user.js" and http.request.method in {"GET" "HEAD"})
+```
+
+规则 ID 为 `be8f4b88f64d4fd099c38cb091f66f7a`，开启匹配日志。未跳过其他自定义规则、WAF Managed Rules、限流、Browser Integrity Check 或 Security Level，也未修改全站机器人防护设置。配置保存在 Cloudflare 控制台，Wrangler 部署不会创建此例外；回滚时禁用或删除该条规则即可。
+
+保存后回读确认规则生效；无 Cookie GET、HEAD 和带查询参数的 GET 均不再带 `cf-mitigated: challenge`。当时脚本尚未部署，三者返回 404；`/theme.css` 和 `/jxzljc.user.js/` 对照请求仍返回 403 挑战。上线后仍需验收脚本 200、内容一致与真实油猴更新，不能把此次 404 当作分发成功。例外的范围参考 [Cloudflare Skip options](https://developers.cloudflare.com/waf/custom-rules/skip/options/)。
+
+## 2026-10-21 · 自托管安装与更新（v0.3.6）
+
+- 21 项官网交互、30 项脚本受控接口测试和 9 项 Greasy Fork 同步协议测试通过；语法、主题、官网检查及 Wrangler dry run 通过。
+- 下载回归在旧构建上因 `/jxzljc.user.js` 返回 404 而失败；新构建返回与源文件完全一致的脚本，版本与包版本一致，两个更新地址均指向本站。
+- 本地 Wrangler runtime 返回 `text/javascript; charset=utf-8`、默认重新验证缓存头及 ETag，条件请求返回 304，未知脚本路径返回 404。
+- 分体按钮覆盖 320 / 390 / 768 / 1440px × 浅深主题、44px 点击范围、键盘关闭与焦点恢复、点击外部收起和无 JavaScript 展开。实看桌面浅色及 320px 深色展开效果。
+- 按钮接缝与菜单动效调整后，13 项定向回归通过，覆盖八种尺寸/主题、下载原文、键盘、关闭中不可交互、快速反向、减少动态效果、无 JavaScript 和主题对比度；实看进出动画帧，并刷新本地 Wrangler 预览。
+- 安装引导与快速连点修复后，31 项官网回归通过；新检查覆盖未检测到管理器时不下载、三种公开信号的受控替身、原生链接继续安装、记住确认、存储禁用、键盘与关闭焦点、320px 深色及桌面浅色，以及真实指针连点不选字、正文仍可复制。已实看本地 Wrangler 弹窗。管理器信号替身不代表真实扩展探测验收。
+- WebKit 的 5 项定向回归通过：连点不选字、正文可复制、可用与受限存储下继续安装，以及 320px 深色和桌面浅色弹窗。
+- 未部署到生产，未验收国内实网、真实 Tampermonkey 安装或自动更新。本次仅修改脚本版本与更新元数据，评教业务代码不变；备用示例截图仍保留 v0.3.5 的真实来源记录。
 
 ## 2026-10-21 · 可交互示例
 
