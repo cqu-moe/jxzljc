@@ -1,6 +1,6 @@
 # 设计接入与验收
 
-使用 CQU Design **theme 1.1.0**。参考该版本的 `START-HERE.md`、`DESIGN.md`、`docs/consumption.md`、布局／组件／状态／动效规范，以及账号设置页的分组方式。
+使用 CQU Design **theme 1.2.0**。参考该 tag 的 `START-HERE.md`、`DESIGN.md`、`docs/consumption.md`、`docs/brand.md`、`docs/product-pages.md` 与 `docs/blue-brand-release.md`。发行 tarball 与 SHA256SUMS 来源见 [本地包记录](../.design/README.md)。
 
 ## 接入方式
 
@@ -18,7 +18,7 @@
 
 ## 官网
 
-独立官网沿用 theme-only 接入，按用户确认使用赭金品牌色与营销标题尺度；局部覆盖和素材来源见 [官网维护说明](website.md)。这些覆盖只作用于官网，不改变用户脚本内嵌的共享主题。
+独立官网沿用 theme-only 接入，使用统一蓝色品牌与营销标题尺度，移除旧赭金及暖中性色覆盖；局部 CTA 映射和素材来源见 [官网维护说明](website.md)。脚本继续使用中性背景、黑白主按钮和语义状态色，链接与焦点采用共享蓝色。评分档位、草稿、核对和提交流程保持原有行为。
 
 ## 自动检查
 

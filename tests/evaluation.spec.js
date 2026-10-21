@@ -522,6 +522,17 @@ for (const colorScheme of ['light', 'dark']) {
       expect(layout.controls.every(c => c.height >= 44 && c.width >= 44)).toBe(true);
       expect(layout.inputFonts.every(size => size >= 16)).toBe(true);
       expect(layout.color).toBe(colorScheme === 'dark' ? 'oklch(0.235 0 0)' : 'oklch(0.985 0 0)');
+      // Brand migration must not tint the working interface's primary action.
+      const neutral = await page.getByRole('button', { name: '开始刷课' }).evaluate(button => {
+        const ctx = document.createElement('canvas').getContext('2d');
+        return ['backgroundColor', 'color'].map(property => {
+          ctx.fillStyle = getComputedStyle(button)[property];
+          ctx.fillRect(0, 0, 1, 1);
+          const rgb = [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3);
+          return Math.max(...rgb) - Math.min(...rgb);
+        });
+      });
+      expect(neutral.every(chroma => chroma <= 1)).toBe(true);
       await expect(page.getByRole('button', { name: '开始刷课' })).toBeInViewport();
       await expect(page.getByRole('heading', { name: '待评清单', exact: true })).toBeInViewport();
       await page.screenshot({ path: testInfo.outputPath('preview-start.png') });
