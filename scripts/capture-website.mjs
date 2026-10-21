@@ -12,8 +12,8 @@ const url = 'https://evaluation.example.invalid/xspj/xspj/index/xspjindex';
 const semester = '2026-2027-1';
 const browser = await chromium.launch();
 try {
-  for (const colorScheme of ['light', 'dark']) {
-    const page = await browser.newPage({ viewport: { width: 608, height: 640 }, colorScheme, reducedMotion: 'reduce', deviceScaleFactor: 2, serviceWorkers: 'block' });
+  for (const width of [608, 320]) for (const colorScheme of ['light', 'dark']) {
+    const page = await browser.newPage({ viewport: { width, height: 640 }, colorScheme, reducedMotion: 'reduce', deviceScaleFactor: 2, serviceWorkers: 'block' });
     const courses = ['示例课程 A', '示例课程 B'].map((name, index) => ({ id: `example-${index}`, name, teacher: '示例教师', xq: semester, kcxz: '理论课', completed: false, progress: 0, status: '未评教' }));
     let submissions = 0;
     await page.route('**/*', async route => {
@@ -42,10 +42,12 @@ try {
     await page.getByLabel('满意度档位').selectOption('B');
     await page.getByLabel('综合评分').fill('90');
     await page.getByLabel('统一评语').fill('示例评语：讲解清楚，希望增加课堂练习。');
-    const shot = async name => page.getByRole('dialog').screenshot({ path: fileURLToPath(new URL(`${name}-${colorScheme}.png`, output)), animations: 'disabled' });
+    const shot = async name => page.getByRole('dialog').screenshot({ path: fileURLToPath(new URL(`${name}${width === 320 ? '-mobile' : ''}-${colorScheme}.png`, output)), animations: 'disabled' });
     await shot('settings');
     await page.getByRole('button', { name: '下一步' }).click();
     await expect(page.getByRole('status')).toContainText('已选 2 门课程');
+    await page.getByRole('listitem').first().locator('summary').click();
+    await expect(page.getByRole('listitem').first().getByLabel('教学设计')).toBeVisible();
     await shot('preview');
     await page.getByRole('button', { name: '开始刷课' }).click();
     await expect(page.getByRole('status')).toHaveText('完成：2 / 2 个条目已核实提交成功。');
@@ -54,7 +56,7 @@ try {
     await page.close();
   }
   await writeFile(new URL('source.json', output), JSON.stringify({ userscriptSha256: createHash('sha256').update(source).digest('hex'), version: source.match(/^\/\/ @version\s+(\S+)/m)[1], command: 'npm run capture:website', scope: 'Actual userscript UI; synthetic data; all network requests intercepted; no school requests.' }, null, 2) + '\n');
-  console.log('Six screenshots captured from actual userscript with synthetic responses.');
+  console.log('Twelve desktop/mobile screenshots captured from actual userscript with synthetic responses.');
 } finally {
   await browser.close();
 }

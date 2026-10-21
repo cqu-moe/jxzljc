@@ -23,7 +23,7 @@ for (const colorScheme of ['light', 'dark']) for (const width of [320, 390, 768,
       const picture = page.locator(`#${await button.getAttribute('aria-controls')}`);
       await expect(picture).toBeVisible();
       await expect.poll(() => picture.locator('img').evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
-      expect(await picture.locator('img').evaluate(img => img.currentSrc)).toContain(`-${colorScheme}.png`);
+      expect(await picture.locator('img').evaluate(img => img.currentSrc)).toContain(`${width <= 600 ? '-mobile' : ''}-${colorScheme}.png`);
     }
     await page.getByRole('button', { name: '核对预览' }).click();
     await page.getByRole('link', { name: '开始安装', exact: true }).click();
@@ -36,6 +36,7 @@ for (const colorScheme of ['light', 'dark']) for (const width of [320, 390, 768,
     await expect(page.locator('.faq details[open]')).toContainText('用户脚本执行权限');
     expect(failures).toEqual([]);
     await page.evaluate(() => scrollTo(0, 0));
+    await page.screenshot({ path: `website/.qa/hero-${width}-${colorScheme}.png` });
     await page.screenshot({ path: `website/.qa/home-${width}-${colorScheme}.png`, fullPage: true });
   });
 }
@@ -97,6 +98,7 @@ test('brand color and readable text survive theme stylesheet precedence', async 
         muted: rgb(style('.hero-detail').color),
         scene: rgb(style('.product-scene').backgroundColor),
         caption: rgb(style('figcaption').color),
+        note: rgb(style('.scene-note').color),
         selected: rgb(style('.demo-switch [aria-pressed="true"]').color),
         button: rgb(style('.button').backgroundColor),
         buttonText: rgb(style('.button').color),
@@ -108,6 +110,6 @@ test('brand color and readable text survive theme stylesheet precedence', async 
       expect(color[2] - color[0]).toBeGreaterThan(50);
       expect(color[2] - color[1]).toBeGreaterThan(30);
     }
-    for (const [text, background] of [['foreground', 'background'], ['muted', 'background'], ['brand', 'background'], ['buttonText', 'button'], ['caption', 'scene'], ['selected', 'scene']]) expect(contrast(colors[text], colors[background])).toBeGreaterThanOrEqual(4.5);
+    for (const [text, background] of [['foreground', 'background'], ['muted', 'background'], ['note', 'background'], ['brand', 'background'], ['buttonText', 'button'], ['caption', 'scene'], ['selected', 'scene']]) expect(contrast(colors[text], colors[background])).toBeGreaterThanOrEqual(4.5);
   }
 });

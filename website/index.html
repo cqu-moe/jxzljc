@@ -17,8 +17,10 @@
   <link rel="apple-touch-icon" href="/brand/icon-192.png">
   <link rel="stylesheet" href="/theme.css">
   <link rel="stylesheet" href="/style.css">
-  <link rel="preload" as="image" href="/demo/preview-light.png" media="(prefers-color-scheme: light)">
-  <link rel="preload" as="image" href="/demo/preview-dark.png" media="(prefers-color-scheme: dark)">
+  <link rel="preload" as="image" href="/demo/preview-light.png" media="(width > 600px) and (prefers-color-scheme: light)">
+  <link rel="preload" as="image" href="/demo/preview-dark.png" media="(width > 600px) and (prefers-color-scheme: dark)">
+  <link rel="preload" as="image" href="/demo/preview-mobile-light.png" media="(width <= 600px) and (prefers-color-scheme: light)">
+  <link rel="preload" as="image" href="/demo/preview-mobile-dark.png" media="(width <= 600px) and (prefers-color-scheme: dark)">
   <script src="/main.js" defer></script>
 </head>
 <body>
@@ -36,25 +38,26 @@
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow">CQU Moe / 重庆大学学生评教工具</p>
-        <h1 id="hero-title">评教，<br><span>少填几遍。</span></h1>
+        <h1 id="hero-title">评教，<br><span>少填几遍。<svg class="headline-mark" viewBox="0 0 360 20" preserveAspectRatio="none" aria-hidden="true"><path d="M8 11C91 2 228 2 350 8"/><path d="M24 18C115 9 233 8 330 13"/></svg></span></h1>
         <p class="hero-description">把重复填写交给工具，<br>把每门课的评价留给自己。</p>
         <p class="hero-detail">评分和评语统一设置一次，已有草稿优先保留。提交前，逐门查看、修改，再确认。</p>
-        <a class="button brand-action" href="#install">开始安装<span aria-hidden="true">↗</span></a>
+        <a class="button brand-action" href="#install">开始安装<span aria-hidden="true">↓</span></a>
         <p class="requirements">电脑浏览器 + Tampermonkey<br>学校评教页面仅校园网可访问</p>
         <p class="micro">免费开源 · 非学校官方产品</p>
       </div>
       <figure class="product-scene" id="preview">
+        <p class="scene-note">评分，还是你来定。<svg viewBox="0 0 42 42" aria-hidden="true"><path d="M4 3C25 2 35 14 29 34M22 28L29 35L37 28"/></svg></p>
         <div class="demo-switch" role="group" aria-label="切换脚本界面截图" hidden>
           <button type="button" data-step="settings" aria-pressed="false" aria-controls="demo-settings">填写设置</button>
           <button type="button" data-step="preview" aria-pressed="true" aria-controls="demo-preview">核对预览</button>
           <button type="button" data-step="progress" aria-pressed="false" aria-controls="demo-progress">提交进度</button>
         </div>
         <div class="demo-window">
-          <picture id="demo-settings" class="demo-pane" hidden><source srcset="/demo/settings-dark.png" media="(prefers-color-scheme: dark)"><img src="/demo/settings-light.png" width="576" height="608" alt="填写设置界面：选择满意度档位、综合评分，填写统一评语。" loading="lazy"></picture>
-          <picture id="demo-preview" class="demo-pane"><source srcset="/demo/preview-dark.png" media="(prefers-color-scheme: dark)"><img src="/demo/preview-light.png" width="576" height="608" alt="核对预览界面：勾选待评课程，逐门查看并修改评分和评语。" fetchpriority="high"></picture>
-          <picture id="demo-progress" class="demo-pane" hidden><source srcset="/demo/progress-dark.png" media="(prefers-color-scheme: dark)"><img src="/demo/progress-light.png" width="576" height="608" alt="提交进度界面：显示已经核实的完成数量与逐条提交记录。" loading="lazy"></picture>
+          <picture id="demo-settings" class="demo-pane" hidden><source srcset="/demo/settings-mobile-dark.png" media="(max-width: 600px) and (prefers-color-scheme: dark)"><source srcset="/demo/settings-mobile-light.png" media="(max-width: 600px)"><source srcset="/demo/settings-dark.png" media="(prefers-color-scheme: dark)"><img src="/demo/settings-light.png" width="576" height="608" alt="填写设置界面：选择满意度档位、综合评分，填写统一评语。" loading="lazy"></picture>
+          <picture id="demo-preview" class="demo-pane"><source srcset="/demo/preview-mobile-dark.png" media="(max-width: 600px) and (prefers-color-scheme: dark)"><source srcset="/demo/preview-mobile-light.png" media="(max-width: 600px)"><source srcset="/demo/preview-dark.png" media="(prefers-color-scheme: dark)"><img src="/demo/preview-light.png" width="576" height="608" alt="核对预览界面：展开示例课程，逐项调整评分、综合评分和评语。" fetchpriority="high"></picture>
+          <picture id="demo-progress" class="demo-pane" hidden><source srcset="/demo/progress-mobile-dark.png" media="(max-width: 600px) and (prefers-color-scheme: dark)"><source srcset="/demo/progress-mobile-light.png" media="(max-width: 600px)"><source srcset="/demo/progress-dark.png" media="(prefers-color-scheme: dark)"><img src="/demo/progress-light.png" width="576" height="608" alt="提交进度界面：显示已经核实的完成数量与逐条提交记录。" loading="lazy"></picture>
         </div>
-        <figcaption><span>实际脚本界面 · 合成示例数据</span><span>仅切换截图，不会提交</span></figcaption>
+        <figcaption>示例数据</figcaption>
       </figure>
     </section>
     <section class="section installation" id="install" aria-labelledby="install-title">

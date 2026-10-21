@@ -54,9 +54,9 @@ Dry run 只验证构建和部署打包。生产验收还需核对 Git Connector 
 
 ## 设计与品牌来源
 
-按 CQU Design 的静态内容站 theme-only 路径接入 **theme 1.2.0**，不引入 React UI 包。来源为 [design v1.2.0](https://github.com/cqu-moe/design/releases/tag/v1.2.0)，使用正式 tarball 并核对发行 SHA256SUMS，保留 npm 锁文件。统一蓝色决策取代先前的赭金与暖中性色例外；网页直接引用共享 `--brand-ink`、`--brand-soft`。只有 `.brand-action` 局部将主按钮映射到 `--brand-solid` / `--brand-on-solid`，根级 primary 和工作界面保持黑白。页面内的 `design-exception` 只用于营销标题字号，检查器对整份 CSS 校验颜色，不再豁免品牌色值。
+按 CQU Design 的静态内容站 theme-only 路径接入 **theme 1.2.0**，不引入 React UI 包。来源为 [design v1.2.0](https://github.com/cqu-moe/design/releases/tag/v1.2.0)，使用正式 tarball 并核对发行 SHA256SUMS，保留 npm 锁文件。统一蓝色决策取代先前的赭金与暖中性色例外；网页直接引用共享品牌变量。只有 `.brand-action` 局部将主按钮映射到 `--brand-solid` / `--brand-on-solid`，根级 primary 和工作界面保持黑白。页面内的 `design-exception` 只用于营销标题字号，检查器对整份 CSS 校验颜色，不再豁免品牌色值。
 
-页面以实际脚本截图、四步安装、使用边界和常见问题为主。首屏只有一个主要安装动作，明确电脑浏览器、Tampermonkey、校园网和非学校官方身份；截图外围仅一层浅品牌衬底，内部保留实际中性窗口，文字注明合成数据且点击只切换截图。安装区与使用边界采用左侧标题、右侧正文的布局，小屏恢复单列。评分由用户决定、草稿保留、确认后提交及隐私边界放在正文中，不只藏在 FAQ。无滚动入场、远程字体、自动轮播或新增运行时依赖；首屏截图按系统主题预加载。
+页面以实际脚本截图、四步安装、使用边界和常见问题为主。首屏保留中性页面、蓝色强调标题和浅蓝预览区，只有一个主要安装动作，电脑浏览器、Tampermonkey、校园网和非学校官方身份在首屏可见。标题下用两笔曲线强调“少填几遍”，预览上方用“评分，还是你来定”的旁注与弯箭头呼应逐门核对；装饰为内联 SVG，不响应指针、不进入辅助技术树，也不自动播放。默认展开一条示例课程展示逐项评分，图注只保留“示例数据”。安装区与使用边界采用左侧标题、右侧正文的布局，小屏恢复单列。评分由用户决定、草稿保留、确认后提交及隐私边界放在正文中，不只藏在 FAQ。无滚动入场、远程字体、自动轮播或新增运行时依赖；首屏截图按视口与系统主题预加载。
 
 Logo 的唯一来源是 `cqu-moe/design` 的 `v1.2.0` tag 下 `assets/brand/path-family/jxzljc/`；`source/marks.json` 保留已批准的气泡/勾选轮廓，配色来自共享主题 token。原稿、提取记录与透明素材保存在 design 中。页面显示蓝色浅深双版本，SVG favicon 自适应系统主题，ICO 与应用图标同步更新。官网没有手动主题切换，因此图片与页面均跟随同一个系统偏好。
 
@@ -71,7 +71,7 @@ node scripts/brand.mjs check jxzljc /path/to/jxzljc
 
 ## 演示截图
 
-`website/public/demo/` 是实际用户脚本的设置、预览、完成界面，每种界面各有浅深两张 PNG。它们使用合成课程与教师名称，所有请求均在浏览器边界被本地响应或拦截，不连接学校服务器。生成命令：
+`website/public/demo/` 是实际用户脚本的设置、预览、完成界面，每种界面各有桌面和小屏、浅深主题四张 PNG。两组截图分别运行于 608px 与 320px 视口；官网在 600px 以下选用真实小屏布局截图，避免把完整桌面界面缩到难以辨认。它们使用合成课程与教师名称，所有请求均在浏览器边界被本地响应或拦截，不连接学校服务器。生成命令：
 
 ```sh
 npm run capture:website
@@ -87,9 +87,9 @@ npm run build:website
 ## 2026-10-21 · issue #9 本地验证
 
 - 1.2.0 正式 theme tarball SHA-256 与发行清单一致；design `v1.2.0` 的品牌同步工具与资源已逐字节核对，13 个消费素材通过 `brand:check`。
-- `npm run build`、`check`、`check:design`、`build:website`、`check:website` 通过；30 项脚本交互、11 项官网交互及 9 项同步协议测试通过。新增检查约束官网实际蓝色和脚本黑白主按钮；正文、强调文字、按钮及截图衬底上的说明和选中标签均至少 4.5:1。
+- `npm run build`、`check`、`check:design`、`build:website`、`check:website` 通过；30 项脚本交互、11 项官网交互及 9 项同步协议测试通过。新增检查约束官网实际蓝色和脚本黑白主按钮；正文、强调文字、按钮、旁注及截图衬底上的说明和选中标签均至少 4.5:1。
 - 官网和脚本均覆盖 320 / 390 / 768 / 1440px × 浅深主题，检查无溢出、断图、44px 操作区域、键盘焦点和主题刷新；脚本输入至少 16px。官网无 JavaScript 时安装与问答仍可用。
-- 重新生成六张合成演示图，`source.json` 匹配 v0.3.4 脚本哈希。除版本与生成主题区外，脚本源码与升级前完全一致，草稿、核对、返回与失败恢复由原交互测试覆盖。
+- 重新生成十二张合成演示图，`source.json` 匹配 v0.3.4 脚本哈希。除版本与生成主题区外，脚本源码与升级前完全一致，草稿、核对、返回与失败恢复由原交互测试覆盖。
 - 在浏览器实看[桌面浅色首屏](screenshots/website-light.png)、[手机深色首屏](screenshots/website-dark-mobile.png)和完整长页；实看正式 Logo 的 16 / 24 / 32px、应用图标和 SVG / ICO favicon。16px 层叠细节较少，轮廓保留可辨认性。
 - `npm run deploy:website -- --dry-run` 通过，仅构建与打包，没有执行部署。远端 CI 见对应 PR；生产 Git Connector 构建、线上读回、Greasy Fork 发布与真实安装不由本地检查证明。
 
