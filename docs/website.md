@@ -94,9 +94,15 @@ npm run build:website
 
 安装权限说明参考 [Tampermonkey 官方 FAQ](https://www.tampermonkey.net/faq.php?locale=zh&q=Q209)。主安装地址固定为 `https://jxzljc.cqu.moe/jxzljc.user.js`，与官网一起发布；不增加 R2、Worker 路由逻辑或 IP 查询。沿用 Static Assets 默认的 MIME 类型、ETag 和 `Cache-Control: public, max-age=0, must-revalidate`，不对固定地址设置长期 immutable 缓存。
 
-安装按钮左侧直接下载本站脚本，右侧箭头用原生 `details` / `summary` 展开备用链接：[Greasy Fork 601134](https://greasyfork.org/zh-CN/scripts/601134) 与 GitHub main 原始脚本。箭头有“其他安装来源”可访问名称和至少 44px 点击宽度；支持 Enter / Space 展开、Tab 访问链接、Escape 返回箭头、点击外部或移出焦点收起。关闭时链接不进入 Tab 顺序；禁用 JavaScript 时仍可展开并安装。
+安装按钮左侧安装本站脚本，右侧箭头用原生 `details` / `summary` 展开备用链接：[Greasy Fork 601134](https://greasyfork.org/zh-CN/scripts/601134) 与 GitHub main 原始脚本。箭头有“其他安装来源”可访问名称和至少 44px 点击宽度；支持 Enter / Space 展开、Tab 访问链接、Escape 返回箭头、点击外部或移出焦点收起。关闭时链接不进入 Tab 顺序；禁用 JavaScript 时仍可展开并安装。
+
+主安装按钮沿用 [Greasy Fork 的公开管理器信号](https://github.com/greasyfork-org/greasyfork/blob/main/app/javascript/managers.js)：收到 `window.external` 上 Tampermonkey、Violentmonkey 或 FireMonkey 信号时直接打开脚本；未收到信号则显示安装引导，不能据此断言用户没有安装扩展。弹窗提供油猴官网和“已安装，继续”两条路径，后者保留原生链接导航，并在本浏览器记住明确确认。存储被禁用时，本次页面内仍可继续；刷新后可能再次提示。不探测扩展 ID，也不引入检测依赖。无 JavaScript、修饰键点击和备用链接保留原有链接行为。
+
+引导使用原生 `dialog`，背景不可交互，支持 Escape、关闭按钮、点击遮罩和焦点返回。沿用主题浅深配色、蓝色主按钮与 44px 操作区域；指针打开时以 180ms 轻微位移淡入、120ms 退出，键盘打开即时显示，减少动态效果时仅淡入淡出。
 
 分体按钮两侧统一为 50px 高，分隔线在上下留白。指针操作时，菜单从右上方以 180ms 淡入和轻微位移、缩放展开，以 120ms 收起，箭头同步旋转；快速反向操作会取消待完成的关闭。收起期间链接立即设为 inert，避免误点或聚焦。键盘操作即时响应；减少动态效果时只保留淡入淡出。无 JavaScript 时仍可使用原生展开控件。
+
+按钮及其菜单局部禁用文字选择，避免快速双击、三击展开箭头时误选刚显示的菜单文字；正文仍可选择复制。仅使用 CSS（包含 WebKit 前缀），不拦截全局选择事件。
 
 v0.3.6 起源脚本的 `@updateURL` / `@downloadURL` 均指向本站固定地址，名称与 namespace 不变；Greasy Fork 分发仍使用其管理的更新地址。旧版无法连接原更新源时，需要从本站安装链接手动更新一次。发布验收应检查线上下载返回 JavaScript 原文、版本与构建源文件一致，并单独验证 Tampermonkey 安装及更新；首页可达、本地静态服务器或 CI 通过都不能证明扩展后台请求不受挑战页影响，也不能证明国内网络可达。
 
@@ -119,6 +125,8 @@ v0.3.6 起源脚本的 `@updateURL` / `@downloadURL` 均指向本站固定地址
 - 本地 Wrangler runtime 返回 `text/javascript; charset=utf-8`、默认重新验证缓存头及 ETag，条件请求返回 304，未知脚本路径返回 404。
 - 分体按钮覆盖 320 / 390 / 768 / 1440px × 浅深主题、44px 点击范围、键盘关闭与焦点恢复、点击外部收起和无 JavaScript 展开。实看桌面浅色及 320px 深色展开效果。
 - 按钮接缝与菜单动效调整后，13 项定向回归通过，覆盖八种尺寸/主题、下载原文、键盘、关闭中不可交互、快速反向、减少动态效果、无 JavaScript 和主题对比度；实看进出动画帧，并刷新本地 Wrangler 预览。
+- 安装引导与快速连点修复后，31 项官网回归通过；新检查覆盖未检测到管理器时不下载、三种公开信号的受控替身、原生链接继续安装、记住确认、存储禁用、键盘与关闭焦点、320px 深色及桌面浅色，以及真实指针连点不选字、正文仍可复制。已实看本地 Wrangler 弹窗。管理器信号替身不代表真实扩展探测验收。
+- WebKit 的 5 项定向回归通过：连点不选字、正文可复制、可用与受限存储下继续安装，以及 320px 深色和桌面浅色弹窗。
 - 未部署到生产，未验收国内实网、真实 Tampermonkey 安装或自动更新。本次仅修改脚本版本与更新元数据，评教业务代码不变；备用示例截图仍保留 v0.3.5 的真实来源记录。
 
 ## 2026-10-21 · 可交互示例

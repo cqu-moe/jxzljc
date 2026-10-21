@@ -51,6 +51,37 @@ installSources.addEventListener('click', event => {
   installTrigger.focus();
 });
 
+const installLink = document.getElementById('install-script');
+const installGuide = document.getElementById('install-guide');
+let managerConfirmed = false;
+try { managerConfirmed = localStorage.getItem('userscript-manager-confirmed') === '1'; } catch {}
+installLink.addEventListener('click', event => {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  // shortcut: manager signals are host-limited; keep manual confirmation until a cross-site detection API exists.
+  const manager = window.external?.Tampermonkey || window.external?.Violentmonkey || window.external?.FireMonkey;
+  if (manager || managerConfirmed) return;
+  event.preventDefault();
+  closeMenu(false);
+  installGuide.dataset.motion = event.detail ? 'animated' : 'instant';
+  installGuide.showModal();
+});
+document.getElementById('install-guide-continue').addEventListener('click', () => {
+  managerConfirmed = true;
+  try { localStorage.setItem('userscript-manager-confirmed', '1'); } catch {}
+  installGuide.close();
+});
+installGuide.querySelector('button').addEventListener('click', event => {
+  installGuide.dataset.motion = event.detail ? 'animated' : 'instant';
+  installGuide.close();
+});
+installGuide.addEventListener('click', event => {
+  if (event.target !== installGuide) return;
+  const rect = installGuide.getBoundingClientRect();
+  if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) installGuide.close();
+});
+installGuide.addEventListener('cancel', () => { installGuide.dataset.motion = 'instant'; });
+installGuide.addEventListener('close', () => installLink.focus({ preventScroll: true }));
+
 const scene = document.querySelector('.product-scene');
 const frame = document.getElementById('demo-frame');
 const playback = document.getElementById('demo-playback');

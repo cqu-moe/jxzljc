@@ -145,6 +145,35 @@ test('alternate installation sources support keyboard navigation and dismiss wit
   await expect(page).toHaveURL(base + '/');
 });
 
+test('rapid pointer clicks do not select installation controls while page prose stays selectable', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const trigger = page.getByLabel('其他安装来源');
+  const selection = () => page.evaluate(() => getSelection().toString());
+  await trigger.scrollIntoViewIfNeeded();
+  await trigger.dblclick();
+  expect(await selection()).toBe('');
+  const triggerBox = await trigger.boundingBox();
+  await page.mouse.click(triggerBox.x + triggerBox.width / 2, triggerBox.y + triggerBox.height / 2, { clickCount: 3 });
+  expect(await selection()).toBe('');
+
+  await page.reload();
+  await trigger.scrollIntoViewIfNeeded();
+  await trigger.click();
+  const item = page.locator('.install-menu').getByRole('link', { name: 'Greasy Fork', exact: true });
+  await expect(item).toBeVisible();
+  const box = await item.boundingBox();
+  await page.mouse.move(box.x + 8, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width - 8, box.y + box.height / 2, { steps: 2 });
+  await page.mouse.up();
+  expect(await selection()).toBe('');
+
+  await page.evaluate(() => getSelection().removeAllRanges());
+  await page.locator('.step').nth(1).locator('p').first().dblclick();
+  expect(await selection()).not.toBe('');
+});
+
 test('pointer-opened installation menu exits, retargets and reduces spatial motion', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
