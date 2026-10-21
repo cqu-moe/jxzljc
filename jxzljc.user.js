@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         重庆大学快速评教
 // @namespace    https://github.com/cqu-moe/jxzljc
-// @version      0.3.4
+// @version      0.3.5
 // @license      MIT
 // @updateURL    https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js
 // @downloadURL  https://raw.githubusercontent.com/cqu-moe/jxzljc/main/jxzljc.user.js
@@ -306,7 +306,7 @@
         <div class="actions">
           <button class="primary" id="next" type="submit" form="settings">下一步</button>
           <button id="back" hidden>上一步</button>
-          <button class="primary" id="confirm" type="submit" form="evaluation" hidden disabled>开始刷课</button>
+          <button class="primary" id="confirm" type="submit" form="evaluation" hidden disabled>开始评教</button>
           <button id="stop" class="primary" hidden>停止后续提交</button>
           <button id="refresh" class="primary" hidden>刷新课程列表</button>
         </div>
@@ -487,7 +487,7 @@
     $('count').textContent = `已选 ${count} / ${plan.items.length}`;
     $('select-all').checked = count > 0 && count === plan.items.length;
     $('select-all').indeterminate = count > 0 && count < plan.items.length;
-    $('status').textContent = count ? `${plan.semester}：点击「开始刷课」将提交已选 ${count} 门课程的评价。` : (plan.items.length ? '尚未选择课程，请勾选要评价的条目。' : `${plan.semester}：0 个待评条目，无需提交。`);
+    $('status').textContent = count ? `${plan.semester}：点击「开始评教」将提交已选 ${count} 门课程的评价。` : (plan.items.length ? '尚未选择课程，请勾选要评价的条目。' : `${plan.semester}：0 个待评条目，无需提交。`);
     lock(busy);
   }
 

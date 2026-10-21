@@ -20,6 +20,8 @@ if (!process.argv.includes('--check')) {
   assert(!html.includes('{{'), 'Unresolved page placeholder');
   await writeFile(new URL('index.html', dist), html);
   await writeFile(new URL('theme.css', dist), theme);
+  // Reuse the shipped UI with isolated window, draft storage and request boundaries.
+  await writeFile(new URL('demo-userscript.js', dist), `function mountEvaluationDemo(fetch) {\nconst window = { top: null, self: null };\nconst localStorage = { getItem: () => null };\n${script}\n}\n`);
   console.log(`Static website built at ${fileURLToPath(dist)}`);
 }
 console.log('Website CQU theme tokens and semantic colors verified.');

@@ -73,7 +73,7 @@ test('预览按评教条目区分教师，保留已有草稿，并且确认前�
   await expect(first.getByLabel('综合评分')).toHaveValue('82');
   await expect(first.getByLabel('评语')).toHaveValue('我原先填写的意见');
   await expect(first.getByText('保留草稿', { exact: true })).toHaveCount(3);
-  await expect(page.getByRole('button', { name: '开始刷课' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: '开始评教' })).toBeEnabled();
   expect(submissions).toEqual([]);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('evaluationState')))).toEqual(draft);
 });
@@ -89,7 +89,7 @@ test('勾选与逐课修改共同决定提交内容，展开收起和取消勾�
   const rows = page.getByRole('listitem');
   const second = rows.nth(1);
   const all = page.getByRole('checkbox', { name: '全选待评课程' });
-  const confirm = page.getByRole('button', { name: '开始刷课' });
+  const confirm = page.getByRole('button', { name: '开始评教' });
   await all.uncheck();
   await expect(rows.getByRole('checkbox').nth(0)).not.toBeChecked();
   await expect(rows.getByRole('checkbox').nth(1)).not.toBeChecked();
@@ -137,7 +137,7 @@ test('校验所有已选课程后才提交，收起的错误会展开定位，�
   const { submissions } = await site(page);
   await preview(page);
   const second = page.getByRole('listitem').nth(1);
-  const confirm = page.getByRole('button', { name: '开始刷课' });
+  const confirm = page.getByRole('button', { name: '开始评教' });
   await second.locator('summary').click();
   const score = second.getByLabel('综合评分');
   for (const value of ['', '1', '96', '82.5']) {
@@ -166,7 +166,7 @@ test('确认后逐条提交预览内容，核实成功并保留其他草稿，�
   };
   const { submissions } = await site(page, { draft });
   await preview(page);
-  await page.getByRole('button', { name: '开始刷课' }).click();
+  await page.getByRole('button', { name: '开始评教' }).click();
   await expect(page.getByRole('status')).toHaveText('完成：2 / 2 个条目已核实提交成功。');
   expect(submissions.map(({ pjsj, ...payload }) => payload)).toEqual([
     { xsxkxxid: 'first', overallRating: '82', comment: '原有意见', ratings: [{ zbid: 'design', score: 9 }, { zbid: 'method', score: 20 }] },
@@ -178,7 +178,7 @@ test('确认后逐条提交预览内容，核实成功并保留其他草稿，�
   await page.addScriptTag({ path: 'jxzljc.user.js' });
   await preview(page);
   await expect(page.getByRole('status')).toContainText('0 个待评条目');
-  await expect(page.getByRole('button', { name: '开始刷课' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '开始评教' })).toBeDisabled();
   expect(submissions).toHaveLength(2);
 });
 
@@ -192,7 +192,7 @@ test('停止后等待当前请求核实，不启动下一条', async ({ page }, 
     await route.fulfill({ json: { success: true, data: {} } });
   } });
   await preview(page);
-  await page.getByRole('button', { name: '开始刷课' }).click();
+  await page.getByRole('button', { name: '开始评教' }).click();
   await expect.poll(() => submissions.length).toBe(1);
   await expect(page.getByRole('checkbox', { name: '全选待评课程' })).toBeHidden();
   await expect(page.getByRole('list', { name: '待评清单' })).toBeHidden();
@@ -228,7 +228,7 @@ test('20门课程的记录窗口随空间伸缩，最新在上且历史可滚动
     await route.fulfill({ json: { success: true, data: {} } });
   } });
   await preview(page);
-  await page.getByRole('button', { name: '开始刷课' }).click();
+  await page.getByRole('button', { name: '开始评教' }).click();
   await expect.poll(() => submissions.length).toBe(18);
   const records = page.getByRole('region', { name: '提交记录' }).getByRole('list');
   const rows = records.getByRole('listitem');
@@ -322,7 +322,7 @@ for (const colorScheme of ['light', 'dark']) {
     await first.getByRole('option', { name: '不满意 · 6 / 15', exact: true }).click();
     await expect(first.getByLabel('教学设计')).toHaveValue('D');
     expect(submissions).toEqual([]);
-    await page.getByRole('button', { name: '开始刷课' }).click();
+    await page.getByRole('button', { name: '开始评教' }).click();
     await expect(page.getByRole('status')).toHaveText('完成：2 / 2 个条目已核实提交成功。');
     expect(submissions[0].ratings).toEqual([{ zbid: 'design', score: 6 }, { zbid: 'method', score: 15 }]);
   });
@@ -348,7 +348,7 @@ test('进度只在回读核实后增长，完成后到达100%并停止动效', a
     },
   });
   await preview(page);
-  await page.getByRole('button', { name: '开始刷课' }).click();
+  await page.getByRole('button', { name: '开始评教' }).click();
   await expect.poll(() => verifying).toBe(true);
   const progress = page.getByRole('progressbar');
   await expect(progress).toHaveAttribute('aria-valuenow', '0');
@@ -384,7 +384,7 @@ for (const mode of ['减少动态效果', '键盘']) {
       await route.fulfill({ json: { success: true, data: {} } });
     } });
     await preview(page);
-    const start = page.getByRole('button', { name: '开始刷课' });
+    const start = page.getByRole('button', { name: '开始评教' });
     if (mode === '键盘') { await start.focus(); await page.keyboard.press('Enter'); }
     else await start.click();
     await expect.poll(() => submissions.length).toBe(1);
@@ -415,10 +415,10 @@ for (const failure of ['服务器拒绝', '网络中断', '回读仍未提交', 
       },
     });
     await preview(page);
-    await page.getByRole('button', { name: '开始刷课' }).click();
+    await page.getByRole('button', { name: '开始评教' }).click();
     await expect(page.getByRole('status')).toHaveText('已停止：1 / 3 个条目已核实提交成功。');
     await expect(page.getByRole('alert')).toContainText('请先刷新核实');
-    await expect(page.getByRole('button', { name: '开始刷课' })).toBeHidden();
+    await expect(page.getByRole('button', { name: '开始评教' })).toBeHidden();
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '3');
     expect(submissions.map(s => s.xsxkxxid)).toEqual(['first', 'second']);
@@ -436,7 +436,7 @@ test('确认前草稿变化会停止，重新预览才采用新内容', async ({
   const { submissions } = await site(page);
   await preview(page);
   await page.evaluate(key => localStorage.setItem('evaluationState', JSON.stringify({ comments: { [key]: '刚补充的意见' } })), `semester-${semester}-course-first`);
-  await page.getByRole('button', { name: '开始刷课' }).click();
+  await page.getByRole('button', { name: '开始评教' }).click();
   await expect(page.getByRole('alert')).toContainText('草稿已变化');
   expect(submissions).toEqual([]);
   await expect(page.getByRole('list', { name: '提交记录' })).toContainText('未提交');
@@ -451,7 +451,7 @@ test('预览后条目已被提交时停止，避免重新提交旧计划', async
   const { submissions, rows } = await site(page);
   await preview(page);
   Object.assign(rows[0], { completed: true, status: '已提交' });
-  await page.getByRole('button', { name: '开始刷课' }).click();
+  await page.getByRole('button', { name: '开始评教' }).click();
   await expect(page.getByRole('alert')).toContainText('条目状态已变化');
   expect(submissions).toEqual([]);
 });
@@ -460,7 +460,7 @@ test('未知题型不会生成可提交计划', async ({ page }) => {
   const { submissions } = await site(page, { definitions: [{ ...indicators[0], options: '非常符合-98,96,94;比较符合-88,86,84' }] });
   await preview(page);
   await expect(page.getByRole('alert')).toContainText('尚未支持的评价指标');
-  await expect(page.getByRole('button', { name: '开始刷课' })).toBeHidden();
+  await expect(page.getByRole('button', { name: '开始评教' })).toBeHidden();
   expect(submissions).toEqual([]);
 });
 
@@ -469,7 +469,7 @@ test('有损坏草稿时停止，原始草稿不被改写', async ({ page }) => 
   await page.evaluate(() => localStorage.setItem('evaluationState', '{损坏的内容'));
   await preview(page);
   await expect(page.getByRole('status')).toHaveText('未生成提交计划。');
-  await expect(page.getByRole('button', { name: '开始刷课' })).toBeHidden();
+  await expect(page.getByRole('button', { name: '开始评教' })).toBeHidden();
   expect(await page.evaluate(() => localStorage.getItem('evaluationState'))).toBe('{损坏的内容');
   expect(submissions).toEqual([]);
 });
@@ -487,7 +487,7 @@ test('小屏可操作且重复加载只保留一个入口，文本不会被执�
   expect(bounds.x + bounds.width).toBeLessThanOrEqual(360);
   await page.getByRole('button', { name: '上一步' }).click();
   await page.getByLabel('统一评语').fill('更改后的意见');
-  await expect(page.getByRole('button', { name: '开始刷课' })).toBeHidden();
+  await expect(page.getByRole('button', { name: '开始评教' })).toBeHidden();
   await page.getByRole('button', { name: '下一步' }).click();
   await page.getByRole('listitem').first().locator('summary').click();
   await expect(page.getByRole('listitem').first().getByLabel('评语')).toHaveValue('更改后的意见');
@@ -523,7 +523,7 @@ for (const colorScheme of ['light', 'dark']) {
       expect(layout.inputFonts.every(size => size >= 16)).toBe(true);
       expect(layout.color).toBe(colorScheme === 'dark' ? 'oklch(0.235 0 0)' : 'oklch(0.985 0 0)');
       // Brand migration must not tint the working interface's primary action.
-      const neutral = await page.getByRole('button', { name: '开始刷课' }).evaluate(button => {
+      const neutral = await page.getByRole('button', { name: '开始评教' }).evaluate(button => {
         const ctx = document.createElement('canvas').getContext('2d');
         return ['backgroundColor', 'color'].map(property => {
           ctx.fillStyle = getComputedStyle(button)[property];
@@ -533,7 +533,7 @@ for (const colorScheme of ['light', 'dark']) {
         });
       });
       expect(neutral.every(chroma => chroma <= 1)).toBe(true);
-      await expect(page.getByRole('button', { name: '开始刷课' })).toBeInViewport();
+      await expect(page.getByRole('button', { name: '开始评教' })).toBeInViewport();
       await expect(page.getByRole('heading', { name: '待评清单', exact: true })).toBeInViewport();
       await page.screenshot({ path: testInfo.outputPath('preview-start.png') });
       const last = page.getByRole('listitem').last();
@@ -542,7 +542,7 @@ for (const colorScheme of ['light', 'dark']) {
       const title = last.getByText('长课程名称与连续标识' + 'CourseIdentifier'.repeat(6), { exact: true });
       await expect(title).toHaveCSS('white-space', 'normal');
       await last.getByLabel('综合评分').scrollIntoViewIfNeeded();
-      await expect(page.getByRole('button', { name: '开始刷课' })).toBeInViewport();
+      await expect(page.getByRole('button', { name: '开始评教' })).toBeInViewport();
       await page.screenshot({ path: testInfo.outputPath('preview.png') });
       expect(await dialog.evaluate(node => [...node.querySelectorAll('*')].some(el => el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).display !== 'inline' && el.clientWidth > 0))).toBe(false);
     });
@@ -584,12 +584,12 @@ test('键盘校验、慢加载和空清单均可理解，关闭恢复焦点', as
   await page.keyboard.press('Enter');
   await expect(page.getByRole('status')).toContainText('正在读取');
   await expect(page.getByRole('button', { name: '正在读取…', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: '开始刷课' })).toBeHidden();
+  await expect(page.getByRole('button', { name: '开始评教' })).toBeHidden();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toBeVisible();
   release();
   await expect(page.getByText('当前学期没有待评条目', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: '开始刷课' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '开始评教' })).toBeDisabled();
   await page.getByRole('button', { name: '关闭快速评教' }).focus();
   for (let i = 0; i < 8; i++) {
     await page.keyboard.press('Tab');
