@@ -133,6 +133,42 @@ test('勾选与逐课修改共同决定提交内容，展开收起和取消勾�
   await expect(page.getByRole('list', { name: '提交记录' }).getByRole('listitem')).toHaveCount(1);
 });
 
+test('全选只刷新一次汇总，逐门选择与评分保持一致', async ({ page }, testInfo) => {
+  const measurements = [];
+  for (const size of [20, 40]) {
+    const { submissions } = await site(page, {
+      courses: Array.from({ length: size }, (_, index) => course(`bulk-${index}`, `示例教师 ${index}`)),
+    });
+    await preview(page);
+    const all = page.getByRole('checkbox', { name: '全选待评课程' });
+    const updates = [];
+    for (const checked of [false, true]) {
+      updates.push(await all.evaluate(control => {
+        const observer = new MutationObserver(() => {});
+        observer.observe(control.getRootNode().getElementById('status'), { childList: true, characterData: true, subtree: true });
+        control.click();
+        const count = observer.takeRecords().length;
+        observer.disconnect();
+        return count;
+      }));
+      await expect(all).toBeChecked({ checked });
+      expect(await page.locator('#list input[type="checkbox"]').evaluateAll(
+        (controls, selected) => controls.every(control => control.checked === selected), checked,
+      )).toBe(true);
+      await expect(page.locator('#list .result')).toHaveText(Array(size).fill(checked ? '90 分' : '本次不评'));
+      await expect(page.getByRole('button', { name: '开始评教' })).toBeEnabled({ enabled: checked });
+      await expect(page.locator('#count')).toHaveText(`已选 ${checked ? size : 0} / ${size}`);
+      await expect(page.getByRole('status')).toContainText(checked ? `已选 ${size} 门课程` : '尚未选择课程');
+    }
+    expect(submissions).toEqual([]);
+    measurements.push({ size, updates });
+  }
+  await testInfo.attach('selection-summary-updates', { body: JSON.stringify(measurements), contentType: 'application/json' });
+  for (const { updates } of measurements) {
+    for (const count of updates) expect(count).toBeLessThanOrEqual(1);
+  }
+});
+
 test('校验所有已选课程后才提交，收起的错误会展开定位，未选课程不阻塞', async ({ page }) => {
   const { submissions } = await site(page);
   await preview(page);
