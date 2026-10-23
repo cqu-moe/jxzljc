@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         重庆大学快速评教
 // @namespace    https://github.com/cqu-moe/jxzljc
-// @version      0.3.6
+// @version      0.3.7
 // @license      MIT
 // @updateURL    https://jxzljc.cqu.moe/jxzljc.user.js
 // @downloadURL  https://jxzljc.cqu.moe/jxzljc.user.js
@@ -530,7 +530,6 @@
       checkbox.addEventListener('change', () => {
         item.selected = checkbox.checked;
         updateSummary();
-        updateSelection();
       });
       for (const f of item.fields) {
         const label = document.createElement('label');
@@ -599,6 +598,11 @@
       $('list').append(li);
     }
   }
+
+  // Row updates stay local; the original checkbox change refreshes the batch once.
+  $('evaluation').addEventListener('change', event => {
+    if (event.target.type === 'checkbox') updateSelection();
+  });
 
   $('select-all').addEventListener('change', () => {
     const checked = $('select-all').checked;
