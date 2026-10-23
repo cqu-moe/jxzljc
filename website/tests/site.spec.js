@@ -309,7 +309,19 @@ test('autoplay types, selects and repeats complete flows without moving page foc
   await expect(demo.getByLabel('满意度档位')).toHaveValue('B');
   await expect.poll(() => demo.locator('#comment').inputValue()).toMatch(/^讲解清楚/);
   const typed = (await demo.locator('#comment').inputValue()).length;
+  // Typing must not keep rebuilding the surrounding form and buttons.
+  const updates = await demo.locator('dialog').evaluateHandle(dialog => {
+    const result = { count: 0 };
+    const observer = new MutationObserver(records => { result.count += records.length; });
+    observer.observe(dialog, { attributes: true, childList: true, subtree: true });
+    return { result, observer };
+  });
   await page.waitForTimeout(1000);
+  expect(await updates.evaluate(({ result, observer }) => {
+    observer.disconnect();
+    return result.count;
+  })).toBe(0);
+  await updates.dispose();
   const later = (await demo.locator('#comment').inputValue()).length;
   expect(later).toBeGreaterThan(typed);
   expect(later - typed).toBeLessThanOrEqual(6);

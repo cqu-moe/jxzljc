@@ -133,10 +133,11 @@ async function type(element, text, signal) {
     return;
   }
   element.value = '';
+  // Invalidate the form once; intermediate demo characters only change the field value.
+  element.dispatchEvent(new Event('input', { bubbles: true }));
   for (const character of text) {
     await delay(85, signal);
     element.value += character;
-    element.dispatchEvent(new Event('input', { bubbles: true }));
   }
   await delay(300, signal);
   element.classList.remove('demo-active');
@@ -154,10 +155,10 @@ async function choose(select, value, signal) {
     if (option.value === select.value) row.className = 'selected';
     menu.append(row);
   }
-  root.append(menu);
   const bounds = select.getBoundingClientRect();
   menu.style.width = `${bounds.width}px`;
   menu.style.left = `${bounds.left}px`;
+  root.append(menu);
   menu.style.top = `${Math.max(8, Math.min(bounds.bottom + 6, innerHeight - menu.offsetHeight - 8))}px`;
   animate(menu, [{ opacity: 0, transform: 'translateY(-4px) scale(.98)' }, { opacity: 1, transform: 'none' }]);
   await delay(400, signal);
